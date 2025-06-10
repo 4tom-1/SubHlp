@@ -9,9 +9,3 @@ export interface Subscription {
   isActive: boolean
   notes?: string
 }
-
-export interface NotificationSettings {
-  email: boolean
-  browser: boolean
-  daysBeforePayment: number
-}

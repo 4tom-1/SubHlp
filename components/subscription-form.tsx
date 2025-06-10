@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { Subscription } from "@/types/subscription"
+import { Textarea } from "@/components/ui/textarea"
 
 interface SubscriptionFormProps {
   onSubmit: (subscription: Omit<Subscription, "id">) => void
@@ -38,6 +39,7 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
     category: initialData?.category || "",
     color: initialData?.color || colors[0],
     isActive: initialData?.isActive ?? true,
+    notes: initialData?.notes || "", // メモフィールドを追加
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -139,6 +141,21 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
                 />
               ))}
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="notes">メモ（任意）</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              placeholder="アカウント情報、使用頻度、解約予定など..."
+              rows={3}
+              className="mt-2"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              アカウント情報や使用状況など、このサブスクリプションに関するメモを記録できます
+            </p>
           </div>
 
           <div className="flex space-x-3 pt-4">

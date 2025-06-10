@@ -30,6 +30,12 @@ export const useSubscriptions = () => {
     saveSubscriptions(updated)
   }
 
+  const updateSubscriptionNotes = (id: string, notes: string) => {
+    const updated = subscriptions.map((sub) => (sub.id === id ? { ...sub, notes } : sub))
+    setSubscriptions(updated)
+    saveSubscriptions(updated)
+  }
+
   const deleteSubscription = (id: string) => {
     const updated = subscriptions.filter((sub) => sub.id !== id)
     setSubscriptions(updated)
@@ -59,6 +65,7 @@ export const useSubscriptions = () => {
     loading,
     addSubscription,
     updateSubscription,
+    updateSubscriptionNotes,
     deleteSubscription,
     getTotalMonthlySpending,
     getTotalYearlySpending,

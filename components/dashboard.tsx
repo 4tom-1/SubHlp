@@ -9,6 +9,8 @@ import { MonthlyChart } from "./monthly-chart"
 import { NotificationSettings } from "./notification-settings"
 import { ServiceComparison } from "./service-comparison"
 import { Plus, CreditCard, TrendingUp, Bell, Search } from "lucide-react"
+import { SubscriptionDetail } from "./subscription-detail"
+import type { Subscription } from "@/types"
 
 export default function Dashboard() {
   const {
@@ -16,12 +18,17 @@ export default function Dashboard() {
     loading,
     addSubscription,
     updateSubscription,
+    updateSubscriptionNotes,
     deleteSubscription,
     getTotalMonthlySpending,
     getTotalYearlySpending,
   } = useSubscriptions()
 
-  const [activeTab, setActiveTab] = useState<"dashboard" | "add" | "chart" | "settings" | "compare">("dashboard")
+  const [activeTab, setActiveTab] = useState<
+    "dashboard" | "add" | "chart" | "settings" | "compare" | "detail" | "edit"
+  >("dashboard")
+  const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null)
+  const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null)
 
   if (loading) {
     return (
@@ -56,6 +63,41 @@ export default function Dashboard() {
         return <NotificationSettings />
       case "compare":
         return <ServiceComparison />
+      case "detail":
+        return selectedSubscription ? (
+          <SubscriptionDetail
+            subscription={selectedSubscription}
+            onBack={() => {
+              setSelectedSubscription(null)
+              setActiveTab("dashboard")
+            }}
+            onEdit={(sub) => {
+              setEditingSubscription(sub)
+              setActiveTab("edit")
+            }}
+            onDelete={(id) => {
+              deleteSubscription(id)
+              setSelectedSubscription(null)
+              setActiveTab("dashboard")
+            }}
+            onUpdateNotes={updateSubscriptionNotes}
+          />
+        ) : null
+      case "edit":
+        return editingSubscription ? (
+          <SubscriptionForm
+            initialData={editingSubscription}
+            onSubmit={(data) => {
+              updateSubscription(editingSubscription.id, data)
+              setEditingSubscription(null)
+              setActiveTab("dashboard")
+            }}
+            onCancel={() => {
+              setEditingSubscription(null)
+              setActiveTab("dashboard")
+            }}
+          />
+        ) : null
       default:
         return (
           <div className="space-y-6">
@@ -118,13 +160,18 @@ export default function Dashboard() {
                     {activeSubscriptions.map((sub) => (
                       <div
                         key={sub.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setSelectedSubscription(sub)
+                          setActiveTab("detail")
+                        }}
                       >
                         <div className="flex items-center space-x-3">
                           <div className="w-4 h-4 rounded-full" style={{ backgroundColor: sub.color }} />
                           <div>
                             <h3 className="font-medium">{sub.name}</h3>
                             <p className="text-sm text-gray-500">{sub.category}</p>
+                            {sub.notes && <p className="text-xs text-gray-400 truncate max-w-48">📝 {sub.notes}</p>}
                           </div>
                         </div>
                         <div className="text-right">
