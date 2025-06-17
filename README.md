@@ -1,30 +1,44 @@
-# Webアプリケーション開発
+# サブ助 - サブスクリプション管理アプリ
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+*Developed using [v0.dev](https://v0.dev) and deployed via [Vercel](https://vercel.com)*
 
 [![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/ruzarohs-projects/v0-web)
 [![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/kmMZjhLz5mh)
 
-## Overview
+## 📝 概要
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+**サブ助**は、複数のサブスクリプション契約を一元管理し、ユーザーが月額・年額支出の可視化、無駄な支払いの見直し、類似サービスの比較まで行える生活支援型Webアプリです。
 
-## Deployment
+- 開発：学生チーム「Riora」
+- 対象：U22プログラミングコンテスト応募作品
+- 使用技術：v0.dev（AI UI生成） × Firebase × Vercel
 
-Your project is live at:
+## 🛠️ 開発・編集ページ
 
-**[https://vercel.com/ruzarohs-projects/v0-web](https://vercel.com/ruzarohs-projects/v0-web)**
+AIベースで作成されたUIの編集は以下から行えます：
 
-## Build your app
+✏️ **[https://v0.dev/chat/projects/kmMZjhLz5mh](https://v0.dev/chat/projects/kmMZjhLz5mh)**
 
-Continue building your app on:
+## 🚀 機能一覧
 
-**[https://v0.dev/chat/projects/kmMZjhLz5mh](https://v0.dev/chat/projects/kmMZjhLz5mh)**
+- 📋 サブスクリプションの追加・一覧・削除
+- 📊 月額・年額合計の自動算出
+- 🟣 アクティブサービス数のカウント
+- 🔔 通知設定（支払い日リマインドなど）
+- 🔍 類似サービスの比較・節約提案（開発中）
 
-## How It Works
+## 📦 技術スタック
 
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+- フロントエンド：HTML / CSS / JavaScript（v0.devによる自動生成）
+- バックエンド：Firebase（Firestore / Hosting / Authentication）
+- デプロイ：Vercel
+- 開発補助：ChatGPT / Figma
+
+## 📄 ライセンス
+
+このプロジェクトは教育目的で開発されたものであり、現在はオープンソースライセンスの対象外です。
+
+---
+
+**開発：チーム Riora（橋本・足立・アヤズ）**  
+U22応募向けプロジェクトとして2025年夏に開発中。
