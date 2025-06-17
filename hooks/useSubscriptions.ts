@@ -1,39 +1,76 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 import type { Subscription } from "@/types/subscription"
-import { getSubscriptions, saveSubscriptions } from "@/lib/storage"
+import { useAuth } from "./useAuth"
 
 export const useSubscriptions = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [loading, setLoading] = useState(true)
+  const { user } = useAuth()
 
   useEffect(() => {
-    const stored = getSubscriptions()
-    setSubscriptions(stored)
-    setLoading(false)
-  }, [])
-
-  const addSubscription = (subscription: Omit<Subscription, "id">) => {
-    const newSubscription: Subscription = {
-      ...subscription,
-      id: Date.now().toString(),
+    if (!user) {
+      setSubscriptions([])
+      setLoading(false)
+      return
     }
-    const updated = [...subscriptions, newSubscription]
-    setSubscriptions(updated)
-    saveSubscriptions(updated)
+
+    const q = query(collection(db, "subscriptions"), where("userId", "==", user.uid))
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const subscriptionData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Subscription[]
+      setSubscriptions(subscriptionData)
+      setLoading(false)
+    })
+
+    return () => unsubscribe()
+  }, [user])
+
+  const addSubscription = async (subscription: Omit<Subscription, "id">) => {
+    if (!user) throw new Error("ユーザーがログインしていません")
+    
+    try {
+      await addDoc(collection(db, "subscriptions"), {
+        ...subscription,
+        userId: user.uid,
+        createdAt: new Date().toISOString()
+      })
+    } catch (error) {
+      console.error("Error adding subscription:", error)
+      throw error
+    }
   }
 
-  const updateSubscription = (id: string, updates: Partial<Subscription>) => {
-    const updated = subscriptions.map((sub) => (sub.id === id ? { ...sub, ...updates } : sub))
-    setSubscriptions(updated)
-    saveSubscriptions(updated)
+  const updateSubscription = async (id: string, updates: Partial<Subscription>) => {
+    if (!user) throw new Error("ユーザーがログインしていません")
+
+    try {
+      const subscriptionRef = doc(db, "subscriptions", id)
+      await updateDoc(subscriptionRef, {
+        ...updates,
+        updatedAt: new Date().toISOString()
+      })
+    } catch (error) {
+      console.error("Error updating subscription:", error)
+      throw error
+    }
   }
 
-  const deleteSubscription = (id: string) => {
-    const updated = subscriptions.filter((sub) => sub.id !== id)
-    setSubscriptions(updated)
-    saveSubscriptions(updated)
+  const deleteSubscription = async (id: string) => {
+    if (!user) throw new Error("ユーザーがログインしていません")
+
+    try {
+      const subscriptionRef = doc(db, "subscriptions", id)
+      await deleteDoc(subscriptionRef)
+    } catch (error) {
+      console.error("Error deleting subscription:", error)
+      throw error
+    }
   }
 
   const getTotalMonthlySpending = () => {
