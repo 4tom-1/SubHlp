@@ -10,6 +10,8 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
+  signInWithPopup,
+  GoogleAuthProvider,
 } from "firebase/auth"
 import { auth } from "@/lib/firebase"
 
@@ -18,6 +20,7 @@ interface AuthContextType {
   loading: boolean
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, displayName?: string) => Promise<void>
+  signInWithGoogle: () => Promise<void>
   logout: () => Promise<void>
 }
 
@@ -63,6 +66,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const signInWithGoogle = async () => {
+    try {
+      const provider = new GoogleAuthProvider()
+      await signInWithPopup(auth, provider)
+    } catch (error: any) {
+      throw new Error(getErrorMessage(error.code))
+    }
+  }
+
   const logout = async () => {
     try {
       await signOut(auth)
@@ -76,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     signIn,
     signUp,
+    signInWithGoogle,
     logout,
   }
 
@@ -99,6 +112,12 @@ function getErrorMessage(errorCode: string): string {
       return "ログイン試行回数が上限に達しました。しばらく時間をおいてから再試行してください"
     case "auth/network-request-failed":
       return "ネットワークエラーが発生しました。インターネット接続を確認してください"
+    case "auth/popup-closed-by-user":
+      return "Googleサインインがキャンセルされました"
+    case "auth/popup-blocked":
+      return "ポップアップがブロックされました。ポップアップを許可してください"
+    case "auth/cancelled-popup-request":
+      return "Googleサインインがキャンセルされました"
     default:
       return "認証エラーが発生しました。もう一度お試しください"
   }

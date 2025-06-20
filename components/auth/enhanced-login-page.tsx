@@ -9,10 +9,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/contexts/auth-context"
-import { CreditCard, Mail, Lock, User, Eye, EyeOff } from "lucide-react"
 import { GoogleSignInButton } from "./google-signin-button"
+import { CreditCard, Mail, Lock, User, Eye, EyeOff, Shield, Zap } from "lucide-react"
 
-export function LoginPage() {
+export function EnhancedLoginPage() {
   const [isSignUp, setIsSignUp] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -59,23 +59,61 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* ヘッダー */}
         <div className="text-center mb-8">
-          <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-3 rounded-lg inline-block mb-4">
+          <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-3 rounded-xl inline-block mb-4 shadow-lg">
             <CreditCard className="h-8 w-8" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">サブ助</h1>
-          <p className="text-gray-600 mt-2">サブスクリプション管理アプリ</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">サブ助</h1>
+          <p className="text-gray-600">サブスクリプション管理アプリ</p>
+          <div className="flex items-center justify-center space-x-4 mt-4 text-sm text-gray-500">
+            <div className="flex items-center">
+              <Shield className="h-4 w-4 mr-1" />
+              <span>安全</span>
+            </div>
+            <div className="flex items-center">
+              <Zap className="h-4 w-4 mr-1" />
+              <span>簡単</span>
+            </div>
+          </div>
         </div>
 
         {/* ログインフォーム */}
-        <Card className="shadow-xl">
-          <CardHeader>
-            <CardTitle className="text-center">{isSignUp ? "アカウント作成" : "ログイン"}</CardTitle>
+        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="text-center pb-4">
+            <CardTitle className="text-xl">{isSignUp ? "アカウント作成" : "ログイン"}</CardTitle>
+            <p className="text-sm text-gray-600 mt-2">
+              {isSignUp
+                ? "新しいアカウントを作成してサブスク管理を始めましょう"
+                : "アカウントにログインしてサブスクを管理しましょう"}
+            </p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
+            {/* Googleサインインボタン */}
+            <div className="space-y-4">
+              <GoogleSignInButton
+                mode={isSignUp ? "signup" : "signin"}
+                onSuccess={() =>
+                  setSuccess(`Googleアカウントで${isSignUp ? "アカウントを作成" : "ログイン"}しました！`)
+                }
+                onError={(error) => setError(error)}
+                disabled={loading}
+              />
+
+              {/* 区切り線 */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-gray-300" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-3 text-gray-500 font-medium">またはメールアドレスで</span>
+                </div>
+              </div>
+            </div>
+
+            {/* メールアドレスフォーム */}
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* 表示名（サインアップ時のみ） */}
               {isSignUp && (
@@ -89,7 +127,7 @@ export function LoginPage() {
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                       placeholder="山田太郎"
-                      className="pl-10"
+                      className="pl-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                       required={isSignUp}
                     />
                   </div>
@@ -107,7 +145,7 @@ export function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="example@email.com"
-                    className="pl-10"
+                    className="pl-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                     required
                   />
                 </div>
@@ -124,14 +162,14 @@ export function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder={isSignUp ? "6文字以上で入力" : "パスワードを入力"}
-                    className="pl-10 pr-10"
+                    className="pl-10 pr-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                     required
                     minLength={6}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition-colors"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -154,7 +192,11 @@ export function LoginPage() {
               )}
 
               {/* 送信ボタン */}
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium py-2.5"
+                disabled={loading}
+              >
                 {loading ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -166,31 +208,11 @@ export function LoginPage() {
                   "ログイン"
                 )}
               </Button>
-
-              {/* 区切り線 */}
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-gray-500 font-medium">または</span>
-                </div>
-              </div>
-
-              {/* Googleサインインボタン */}
-              <GoogleSignInButton
-                mode={isSignUp ? "signup" : "signin"}
-                onSuccess={() =>
-                  setSuccess(`Googleアカウントで${isSignUp ? "アカウントを作成" : "ログイン"}しました！`)
-                }
-                onError={(error) => setError(error)}
-                disabled={loading}
-              />
             </form>
 
             {/* モード切り替え */}
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
+            <div className="text-center pt-4 border-t border-gray-200">
+              <p className="text-sm text-gray-600 mb-2">
                 {isSignUp ? "すでにアカウントをお持ちですか？" : "アカウントをお持ちでない方は"}
               </p>
               <Button
@@ -207,6 +229,7 @@ export function LoginPage() {
         {/* フッター */}
         <div className="text-center mt-8 text-sm text-gray-500">
           <p>© 2024 サブ助. All rights reserved.</p>
+          <p className="mt-1">安全で簡単なサブスクリプション管理</p>
         </div>
       </div>
     </div>

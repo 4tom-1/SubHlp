@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useAuth } from "@/contexts/auth-context"
-import { LoginPage } from "./login-page"
+import { EnhancedLoginPage } from "./enhanced-login-page"
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -24,7 +24,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!user) {
-    return <LoginPage />
+    return <EnhancedLoginPage />
   }
 
   return <>{children}</>
