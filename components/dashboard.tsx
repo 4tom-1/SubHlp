@@ -8,11 +8,14 @@ import { SubscriptionForm } from "./subscription-form"
 import { MonthlyChart } from "./monthly-chart"
 import { NotificationSettings } from "./notification-settings"
 import { ServiceComparison } from "./service-comparison"
-import { Plus, CreditCard, TrendingUp, Bell, Search } from "lucide-react"
+import { Plus, CreditCard, TrendingUp, Bell, Search, User } from "lucide-react"
 import { SubscriptionDetail } from "./subscription-detail"
 import type { Subscription } from "@/types"
+import { UserProfile } from "./auth/user-profile"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function Dashboard() {
+  const { user } = useAuth()
   const {
     subscriptions,
     loading,
@@ -25,7 +28,7 @@ export default function Dashboard() {
   } = useSubscriptions()
 
   const [activeTab, setActiveTab] = useState<
-    "dashboard" | "add" | "chart" | "settings" | "compare" | "detail" | "edit"
+    "dashboard" | "add" | "chart" | "settings" | "compare" | "detail" | "edit" | "profile"
   >("dashboard")
   const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null)
   const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null)
@@ -98,6 +101,8 @@ export default function Dashboard() {
             }}
           />
         ) : null
+      case "profile":
+        return <UserProfile />
       default:
         return (
           <div className="space-y-6">
@@ -230,6 +235,13 @@ export default function Dashboard() {
                 <p className="text-sm text-gray-500">サブスクリプション管理</p>
               </div>
             </div>
+            <div className="flex items-center space-x-3">
+              <span className="text-sm text-gray-600">こんにちは、{user?.displayName || user?.email}さん</span>
+              <Button variant="outline" size="sm" onClick={() => setActiveTab("profile")}>
+                <User className="h-4 w-4 mr-2" />
+                プロフィール
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -244,6 +256,7 @@ export default function Dashboard() {
               { id: "chart", label: "グラフ", icon: TrendingUp },
               { id: "settings", label: "通知設定", icon: Bell },
               { id: "compare", label: "サービス比較", icon: Search },
+              { id: "profile", label: "プロフィール", icon: User },
             ].map((tab) => (
               <button
                 key={tab.id}
