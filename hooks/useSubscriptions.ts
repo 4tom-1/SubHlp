@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import type { Subscription } from "@/types/subscription"
-import { useAuth } from "./useAuth"
+import { useAuth } from "@/app/contexts/AuthContext"
 
 export const useSubscriptions = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])

@@ -32,7 +32,7 @@ const colors = ["#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6", "#EC4899"
 export function SubscriptionForm({ onSubmit, onCancel, initialData }: SubscriptionFormProps) {
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
-    price: initialData?.price || 0,
+    price: initialData?.price || "",
     billingCycle: initialData?.billingCycle || ("monthly" as const),
     nextPayment: initialData?.nextPayment || "",
     category: initialData?.category || "",
@@ -40,13 +40,35 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
     isActive: initialData?.isActive ?? true,
   })
 
+  const [errors, setErrors] = useState<{
+    name?: boolean;
+    price?: boolean;
+    nextPayment?: boolean;
+    category?: boolean;
+  }>({})
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.name || !formData.price || !formData.nextPayment || !formData.category) {
-      alert("すべての必須項目を入力してください")
+    const newErrors = {
+      name: !formData.name,
+      price: !formData.price || Number(formData.price) <= 0,
+      nextPayment: !formData.nextPayment,
+      category: !formData.category,
+    }
+    setErrors(newErrors)
+
+    if (Object.values(newErrors).some(error => error)) {
+      if (Number(formData.price) <= 0) {
+        alert("料金は0円より大きい値を入力してください")
+      } else {
+        alert("必須項目を入力してください")
+      }
       return
     }
-    onSubmit(formData)
+    onSubmit({
+      ...formData,
+      price: Number(formData.price)
+    })
   }
 
   return (
@@ -57,26 +79,41 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="name">サービス名 *</Label>
+            <Label htmlFor="name" className={errors.name ? "text-red-500" : ""}>サービス名 *</Label>
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, name: e.target.value })
+                setErrors(prev => ({ ...prev, name: false }))
+              }}
               placeholder="Netflix, Spotify など"
               required
+              className={errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="price">料金 *</Label>
+              <Label htmlFor="price" className={errors.price ? "text-red-500" : ""}>料金 *</Label>
               <Input
                 id="price"
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                placeholder="1000"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // 数値以外の文字を除去
+                  const numericValue = value.replace(/[^0-9]/g, '');
+                  setFormData({ ...formData, price: numericValue })
+                  setErrors(prev => ({ ...prev, price: false }))
+                }}
+                placeholder="金額を入力してください"
                 required
+                className={`[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
+                  errors.price ? "border-red-500 focus-visible:ring-red-500" : ""
+                }`}
               />
             </div>
 
@@ -98,20 +135,30 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
           </div>
 
           <div>
-            <Label htmlFor="nextPayment">次回支払日 *</Label>
+            <Label htmlFor="nextPayment" className={errors.nextPayment ? "text-red-500" : ""}>次回支払日 *</Label>
             <Input
               id="nextPayment"
               type="date"
               value={formData.nextPayment}
-              onChange={(e) => setFormData({ ...formData, nextPayment: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, nextPayment: e.target.value })
+                setErrors(prev => ({ ...prev, nextPayment: false }))
+              }}
               required
+              className={errors.nextPayment ? "border-red-500 focus-visible:ring-red-500" : ""}
             />
           </div>
 
           <div>
-            <Label htmlFor="category">カテゴリ *</Label>
-            <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-              <SelectTrigger>
+            <Label htmlFor="category" className={errors.category ? "text-red-500" : ""}>カテゴリ *</Label>
+            <Select 
+              value={formData.category} 
+              onValueChange={(value) => {
+                setFormData({ ...formData, category: value })
+                setErrors(prev => ({ ...prev, category: false }))
+              }}
+            >
+              <SelectTrigger className={errors.category ? "border-red-500 focus-visible:ring-red-500" : ""}>
                 <SelectValue placeholder="カテゴリを選択" />
               </SelectTrigger>
               <SelectContent>

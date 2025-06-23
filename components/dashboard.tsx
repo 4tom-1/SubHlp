@@ -9,6 +9,8 @@ import { MonthlyChart } from "./monthly-chart"
 import { NotificationSettings } from "./notification-settings"
 import { ServiceComparison } from "./service-comparison"
 import { Plus, CreditCard, TrendingUp, Bell, Search } from "lucide-react"
+import { Auth } from "@/components/auth"
+import { Subscription } from "@/types/subscription"
 
 export default function Dashboard() {
   const {
@@ -21,7 +23,8 @@ export default function Dashboard() {
     getTotalYearlySpending,
   } = useSubscriptions()
 
-  const [activeTab, setActiveTab] = useState<"dashboard" | "add" | "chart" | "settings" | "compare">("dashboard")
+  const [activeTab, setActiveTab] = useState<"dashboard" | "add" | "chart" | "settings" | "compare" | "edit">("dashboard")
+  const [editTarget, setEditTarget] = useState<null | Subscription>(null)
 
   if (loading) {
     return (
@@ -48,6 +51,21 @@ export default function Dashboard() {
               setActiveTab("dashboard")
             }}
             onCancel={() => setActiveTab("dashboard")}
+          />
+        )
+      case "edit":
+        return (
+          <SubscriptionForm
+            initialData={editTarget!}
+            onSubmit={async (data) => {
+              await updateSubscription(editTarget!.id, data)
+              setEditTarget(null)
+              setActiveTab("dashboard")
+            }}
+            onCancel={() => {
+              setEditTarget(null)
+              setActiveTab("dashboard")
+            }}
           />
         )
       case "chart":
@@ -127,16 +145,28 @@ export default function Dashboard() {
                             <p className="text-sm text-gray-500">{sub.category}</p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-medium">
-                            ¥{sub.price.toLocaleString()}
-                            <span className="text-sm text-gray-500">
-                              /{sub.billingCycle === "monthly" ? "月" : "年"}
-                            </span>
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            次回: {new Date(sub.nextPayment).toLocaleDateString("ja-JP")}
-                          </p>
+                        <div className="flex items-center space-x-4">
+                          <div className="text-right">
+                            <p className="font-medium">
+                              ¥{sub.price.toLocaleString()}
+                              <span className="text-sm text-gray-500">
+                                /{sub.billingCycle === "monthly" ? "月" : "年"}
+                              </span>
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              次回: {new Date(sub.nextPayment).toLocaleDateString("ja-JP")}
+                            </p>
+                          </div>
+                          <Button size="sm" variant="outline" onClick={() => { setEditTarget(sub); setActiveTab("edit") }}>
+                            編集
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={async () => {
+                            if (window.confirm(`「${sub.name}」を削除しますか？`)) {
+                              await deleteSubscription(sub.id)
+                            }
+                          }}>
+                            削除
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -182,6 +212,9 @@ export default function Dashboard() {
                 <h1 className="text-xl font-bold text-gray-900">サブ助</h1>
                 <p className="text-sm text-gray-500">サブスクリプション管理</p>
               </div>
+            </div>
+            <div>
+              <Auth />
             </div>
           </div>
         </div>

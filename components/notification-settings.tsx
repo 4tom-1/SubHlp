@@ -7,9 +7,12 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import type { NotificationSettings as NotificationSettingsType } from "@/types/subscription"
-import { getSettings, saveSettings } from "@/lib/storage"
+import { doc, getDoc, setDoc } from "firebase/firestore"
+import { db } from "@/lib/firebase"
+import { useAuth } from "@/app/contexts/AuthContext"
 
 export function NotificationSettings() {
+  const { user } = useAuth()
   const [settings, setSettings] = useState<NotificationSettingsType>({
     email: false,
     browser: false,
@@ -17,11 +20,21 @@ export function NotificationSettings() {
   })
 
   useEffect(() => {
-    setSettings(getSettings())
-  }, [])
+    const fetchSettings = async () => {
+      if (!user) return
+      const docRef = doc(db, "users", user.uid, "settings", "notifications")
+      const docSnap = await getDoc(docRef)
+      if (docSnap.exists()) {
+        setSettings(docSnap.data() as NotificationSettingsType)
+      }
+    }
+    fetchSettings()
+  }, [user])
 
-  const handleSave = () => {
-    saveSettings(settings)
+  const handleSave = async () => {
+    if (!user) return
+    const docRef = doc(db, "users", user.uid, "settings", "notifications")
+    await setDoc(docRef, settings)
     alert("設定を保存しました")
   }
 
