@@ -27,6 +27,14 @@ const categories = [
   "その他",
 ]
 
+const statuses = [
+  { value: "active", label: "利用中" },
+  { value: "paused", label: "一時停止中" },
+  { value: "cancelled", label: "解約済み" },
+  { value: "pending_cancellation", label: "解約予定" },
+  { value: "trial", label: "トライアル中" },
+]
+
 const colors = ["#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6", "#EC4899", "#06B6D4", "#84CC16"]
 
 export function SubscriptionForm({ onSubmit, onCancel, initialData }: SubscriptionFormProps) {
@@ -37,7 +45,7 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
     nextPayment: initialData?.nextPayment || "",
     category: initialData?.category || "",
     color: initialData?.color || colors[0],
-    isActive: initialData?.isActive ?? true,
+    status: initialData?.status || ("active" as const),
   })
 
   const [errors, setErrors] = useState<{
@@ -45,6 +53,7 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
     price?: boolean;
     nextPayment?: boolean;
     category?: boolean;
+    status?: boolean;
   }>({})
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -165,6 +174,27 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label>ステータス</Label>
+            <Select 
+              value={formData.status} 
+              onValueChange={(value: "active" | "paused" | "cancelled" | "pending_cancellation" | "trial") => {
+                setFormData({ ...formData, status: value })
+              }}
+            >
+              <SelectTrigger className={errors.status ? "border-red-500 focus-visible:ring-red-500" : ""}>
+                <SelectValue placeholder="ステータスを選択" />
+              </SelectTrigger>
+              <SelectContent>
+                {statuses.map((status) => (
+                  <SelectItem key={status.value} value={status.value}>
+                    {status.label}
                   </SelectItem>
                 ))}
               </SelectContent>

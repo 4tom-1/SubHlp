@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { Auth } from '@/components/auth'
 import { AuthProvider } from '@/app/contexts/AuthContext'
 
 export const metadata: Metadata = {
-  title: 'SM App',
-  description: 'Created with v0',
+  title: 'ログインアプリ',
+  description: 'ログイン機能のデモ',
   generator: 'v0.dev',
 }
 
@@ -18,11 +17,7 @@ export default function RootLayout({
     <html lang="ja">
       <body>
         <AuthProvider>
-          <div className="min-h-screen flex items-center justify-center">
-            <main className="container px-4 py-0">
-              {children}
-            </main>
-          </div>
+          {children}
         </AuthProvider>
       </body>
     </html>

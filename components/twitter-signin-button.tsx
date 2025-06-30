@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { GoogleIcon } from "./ui/google-icon"
+import { TwitterIcon } from "./ui/twitter-icon"
 import { useAuth } from "@/app/contexts/AuthContext"
 
-interface GoogleSignInButtonProps {
+interface TwitterSignInButtonProps {
   mode: "signin" | "signup"
   onSuccess?: () => void
   onError?: (error: string) => void
@@ -13,11 +13,11 @@ interface GoogleSignInButtonProps {
   onClick?: () => boolean | void
 }
 
-export function GoogleSignInButton({ mode, onSuccess, onError, disabled, onClick }: GoogleSignInButtonProps) {
+export function TwitterSignInButton({ mode, onSuccess, onError, disabled, onClick }: TwitterSignInButtonProps) {
   const [loading, setLoading] = useState(false)
-  const { signInWithGoogle } = useAuth()
+  const { signInWithTwitter } = useAuth()
 
-  const handleGoogleSignIn = async () => {
+  const handleTwitterSignIn = async () => {
     if (onClick) {
       const result = onClick()
       if (result === false) {
@@ -29,7 +29,7 @@ export function GoogleSignInButton({ mode, onSuccess, onError, disabled, onClick
     setLoading(true)
 
     try {
-      await signInWithGoogle()
+      await signInWithTwitter()
       onSuccess?.()
     } catch (error: any) {
       if (error.message === "ログインがキャンセルされました") {
@@ -80,7 +80,7 @@ export function GoogleSignInButton({ mode, onSuccess, onError, disabled, onClick
       type="button"
       variant="outline"
       className="w-full border-gray-300 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-      onClick={handleGoogleSignIn}
+      onClick={handleTwitterSignIn}
       disabled={disabled || loading}
     >
       {loading ? (
@@ -90,8 +90,8 @@ export function GoogleSignInButton({ mode, onSuccess, onError, disabled, onClick
         </div>
       ) : (
         <>
-          <GoogleIcon className="mr-2 h-4 w-4" />
-          <span className="text-gray-700 font-medium">Googleで{mode === "signup" ? "アカウント作成" : "ログイン"}</span>
+          <TwitterIcon className="mr-2 h-4 w-4" />
+          <span className="text-gray-700 font-medium">Xで{mode === "signup" ? "アカウント作成" : "ログイン"}</span>
         </>
       )}
     </Button>

@@ -11,6 +11,7 @@ import { ServiceComparison } from "./service-comparison"
 import { Plus, CreditCard, TrendingUp, Bell, Search } from "lucide-react"
 import { Auth } from "@/components/auth"
 import { Subscription } from "@/types/subscription"
+import { getStatusConfig, isActiveStatus } from "@/lib/utils"
 
 export default function Dashboard() {
   const {
@@ -25,6 +26,7 @@ export default function Dashboard() {
 
   const [activeTab, setActiveTab] = useState<"dashboard" | "add" | "chart" | "settings" | "compare" | "edit">("dashboard")
   const [editTarget, setEditTarget] = useState<null | Subscription>(null)
+  const [statusFilter, setStatusFilter] = useState<string>("all")
 
   if (loading) {
     return (
@@ -37,7 +39,7 @@ export default function Dashboard() {
     )
   }
 
-  const activeSubscriptions = subscriptions.filter((sub) => sub.isActive)
+  const activeSubscriptions = subscriptions.filter((sub) => isActiveStatus(sub.status))
   const monthlyTotal = getTotalMonthlySpending()
   const yearlyTotal = getTotalYearlySpending()
 
@@ -118,14 +120,28 @@ export default function Dashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>サブスクリプション一覧</span>
-                  <Button onClick={() => setActiveTab("add")} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    追加
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="px-3 py-1 border border-gray-300 rounded-md text-sm"
+                    >
+                      <option value="all">すべて</option>
+                      <option value="active">利用中</option>
+                      <option value="paused">一時停止中</option>
+                      <option value="cancelled">解約済み</option>
+                      <option value="pending_cancellation">解約予定</option>
+                      <option value="trial">トライアル中</option>
+                    </select>
+                    <Button onClick={() => setActiveTab("add")} size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      追加
+                    </Button>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {activeSubscriptions.length === 0 ? (
+                {subscriptions.length === 0 ? (
                   <div className="text-center py-8">
                     <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-500 mb-4">まだサブスクリプションが登録されていません</p>
@@ -133,7 +149,9 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {activeSubscriptions.map((sub) => (
+                    {subscriptions
+                      .filter((sub) => statusFilter === "all" || sub.status === statusFilter)
+                      .map((sub) => (
                       <div
                         key={sub.id}
                         className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
@@ -143,6 +161,11 @@ export default function Dashboard() {
                           <div>
                             <h3 className="font-medium">{sub.name}</h3>
                             <p className="text-sm text-gray-500">{sub.category}</p>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <span className={`px-2 py-1 text-xs rounded-full ${getStatusConfig(sub.status).color}`}>
+                                {getStatusConfig(sub.status).icon} {getStatusConfig(sub.status).label}
+                              </span>
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center space-x-4">

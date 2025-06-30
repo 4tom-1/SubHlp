@@ -5,6 +5,7 @@ import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where
 import { db } from "@/lib/firebase"
 import type { Subscription } from "@/types/subscription"
 import { useAuth } from "@/app/contexts/AuthContext"
+import { isActiveStatus } from "@/lib/utils"
 
 export const useSubscriptions = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
@@ -75,7 +76,7 @@ export const useSubscriptions = () => {
 
   const getTotalMonthlySpending = () => {
     return subscriptions
-      .filter((sub) => sub.isActive)
+      .filter((sub) => isActiveStatus(sub.status))
       .reduce((total, sub) => {
         const monthlyPrice = sub.billingCycle === "yearly" ? sub.price / 12 : sub.price
         return total + monthlyPrice
@@ -84,7 +85,7 @@ export const useSubscriptions = () => {
 
   const getTotalYearlySpending = () => {
     return subscriptions
-      .filter((sub) => sub.isActive)
+      .filter((sub) => isActiveStatus(sub.status))
       .reduce((total, sub) => {
         const yearlyPrice = sub.billingCycle === "yearly" ? sub.price : sub.price * 12
         return total + yearlyPrice

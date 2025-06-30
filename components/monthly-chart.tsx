@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { Subscription } from "@/types/subscription"
+import { isActiveStatus } from "@/lib/utils"
 
 interface MonthlyChartProps {
   subscriptions: Subscription[]
@@ -17,7 +18,7 @@ export function MonthlyChart({ subscriptions }: MonthlyChartProps) {
     months.push({
       name: date.toLocaleDateString("ja-JP", { year: "numeric", month: "short" }),
       value: subscriptions
-        .filter((sub) => sub.isActive)
+        .filter((sub) => isActiveStatus(sub.status))
         .reduce((total, sub) => {
           const monthlyPrice = sub.billingCycle === "yearly" ? sub.price / 12 : sub.price
           return total + monthlyPrice
@@ -61,7 +62,7 @@ export function MonthlyChart({ subscriptions }: MonthlyChartProps) {
           <div className="space-y-3">
             {Object.entries(
               subscriptions
-                .filter((sub) => sub.isActive)
+                .filter((sub) => isActiveStatus(sub.status))
                 .reduce(
                   (acc, sub) => {
                     const monthlyPrice = sub.billingCycle === "yearly" ? sub.price / 12 : sub.price

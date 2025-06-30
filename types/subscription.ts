@@ -6,7 +6,9 @@ export interface Subscription {
   nextPayment: string
   category: string
   color: string
-  isActive: boolean
+  status: "active" | "paused" | "cancelled" | "pending_cancellation" | "trial"
+  serviceUrl?: string
+  paymentUrl?: string
 }
 
 export interface NotificationSettings {
