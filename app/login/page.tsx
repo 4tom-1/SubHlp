@@ -486,158 +486,158 @@ export default function LoginPage() {
                       </div>
                     </div>
 
-                    {/* Googleサインインボタン */}
-                    <GoogleSignInButton
-                      mode={isSignUp ? "signup" : "signin"}
-                      onClick={() => {
-                        if (isSignUp && !agree) {
-                          setError("アカウント作成には利用規約とプライバシーポリシーへの同意が必要です。")
-                          return false // 認証処理を実行しない
-                        }
-                        if (showTurnstile && !turnstileToken) {
-                          setError("セキュリティ確認が必要です。")
-                          return false // 認証処理を実行しない
-                        }
-                        return true // 認証処理を実行
-                      }}
-                      onSuccess={() => {
-                        setSuccess(`Googleアカウントで${isSignUp ? "アカウントを作成" : "ログイン"}しました！`)
-                        // 成功時はログイン試行回数をリセット
-                        setLoginAttempts(0)
-                        setShowTurnstile(false)
-                        setTurnstileToken(null)
-                      }}
-                      onError={(error) => {
-                        if (error === "ログインがキャンセルされました") {
-                          setError("ログインがキャンセルされました。\nもう一度お試しください。")
-                        } else if (error.includes("別の認証方法で登録されています") || error.includes("アカウント連携ダイアログ")) {
-                          setError("このメールアドレスは既に別の認証方法で登録されています。\n\n多要素認証は未実装です。")
-                        } else {
-                          setError(error)
-                        }
-                        
-                        // ログイン失敗時の処理（キャンセル以外）
-                        if (error !== "ログインがキャンセルされました") {
-                          const newAttempts = loginAttempts + 1
-                          setLoginAttempts(newAttempts)
-                          
-                          // 3回失敗でTurnstile表示
-                          if (newAttempts >= 3 && !showTurnstile) {
-                            setShowTurnstile(true)
+                    {/* SNSログインボタン（横並び） */}
+                    <div className="flex justify-center space-x-4">
+                      <GoogleSignInButton
+                        mode={isSignUp ? "signup" : "signin"}
+                        onClick={() => {
+                          if (isSignUp && !agree) {
+                            setError("アカウント作成には利用規約とプライバシーポリシーへの同意が必要です。")
+                            return false // 認証処理を実行しない
+                          }
+                          if (showTurnstile && !turnstileToken) {
+                            setError("セキュリティ確認が必要です。")
+                            return false // 認証処理を実行しない
+                          }
+                          return true // 認証処理を実行
+                        }}
+                        onSuccess={() => {
+                          setSuccess(`Googleアカウントで${isSignUp ? "アカウントを作成" : "ログイン"}しました！`)
+                          // 成功時はログイン試行回数をリセット
+                          setLoginAttempts(0)
+                          setShowTurnstile(false)
+                          setTurnstileToken(null)
+                        }}
+                        onError={(error) => {
+                          if (error === "ログインがキャンセルされました") {
+                            setError("ログインがキャンセルされました。\nもう一度お試しください。")
+                          } else if (error.includes("別の認証方法で登録されています") || error.includes("アカウント連携ダイアログ")) {
+                            setError("このメールアドレスは既に別の認証方法で登録されています。\n\n多要素認証は未実装です。")
+                          } else {
+                            setError(error)
                           }
                           
-                          // 最大試行回数でロックアウト
-                          if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
-                            setIsLocked(true)
-                            setLockoutTime(new Date())
-                            setError("セキュリティのため、アカウントが一時的にロックされました。15分後に再試行してください。")
+                          // ログイン失敗時の処理（キャンセル以外）
+                          if (error !== "ログインがキャンセルされました") {
+                            const newAttempts = loginAttempts + 1
+                            setLoginAttempts(newAttempts)
+                            
+                            // 3回失敗でTurnstile表示
+                            if (newAttempts >= 3 && !showTurnstile) {
+                              setShowTurnstile(true)
+                            }
+                            
+                            // 最大試行回数でロックアウト
+                            if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
+                              setIsLocked(true)
+                              setLockoutTime(new Date())
+                              setError("セキュリティのため、アカウントが一時的にロックされました。15分後に再試行してください。")
+                            }
                           }
-                        }
-                      }}
-                      disabled={loading || isSnsLocked}
-                    />
+                        }}
+                        disabled={loading || isSnsLocked}
+                      />
 
-                    {/* Microsoftサインインボタン */}
-                    <MicrosoftSignInButton
-                      mode={isSignUp ? "signup" : "signin"}
-                      onClick={() => {
-                        if (isSignUp && !agree) {
-                          setError("アカウント作成には利用規約とプライバシーポリシーへの同意が必要です。")
-                          return false
-                        }
-                        if (showTurnstile && !turnstileToken) {
-                          setError("セキュリティ確認が必要です。")
-                          return false
-                        }
-                        return true
-                      }}
-                      onSuccess={() => {
-                        setSuccess(`Microsoftアカウントで${isSignUp ? "アカウントを作成" : "ログイン"}しました！`)
-                        // 成功時はログイン試行回数をリセット
-                        setLoginAttempts(0)
-                        setShowTurnstile(false)
-                        setTurnstileToken(null)
-                      }}
-                      onError={(error) => {
-                        if (error === "ログインがキャンセルされました") {
-                          setError("ログインがキャンセルされました。\nもう一度お試しください。")
-                        } else if (error.includes("別の認証方法で登録されています") || error.includes("アカウント連携ダイアログ")) {
-                          setError("このメールアドレスは既に別の認証方法で登録されています。\n\n多要素認証は未実装です。")
-                        } else {
-                          setError(error)
-                        }
-                        
-                        // ログイン失敗時の処理（キャンセル以外）
-                        if (error !== "ログインがキャンセルされました") {
-                          const newAttempts = loginAttempts + 1
-                          setLoginAttempts(newAttempts)
-                          
-                          // 3回失敗でTurnstile表示
-                          if (newAttempts >= 3 && !showTurnstile) {
-                            setShowTurnstile(true)
+                      <MicrosoftSignInButton
+                        mode={isSignUp ? "signup" : "signin"}
+                        onClick={() => {
+                          if (isSignUp && !agree) {
+                            setError("アカウント作成には利用規約とプライバシーポリシーへの同意が必要です。")
+                            return false
+                          }
+                          if (showTurnstile && !turnstileToken) {
+                            setError("セキュリティ確認が必要です。")
+                            return false
+                          }
+                          return true
+                        }}
+                        onSuccess={() => {
+                          setSuccess(`Microsoftアカウントで${isSignUp ? "アカウントを作成" : "ログイン"}しました！`)
+                          // 成功時はログイン試行回数をリセット
+                          setLoginAttempts(0)
+                          setShowTurnstile(false)
+                          setTurnstileToken(null)
+                        }}
+                        onError={(error) => {
+                          if (error === "ログインがキャンセルされました") {
+                            setError("ログインがキャンセルされました。\nもう一度お試しください。")
+                          } else if (error.includes("別の認証方法で登録されています") || error.includes("アカウント連携ダイアログ")) {
+                            setError("このメールアドレスは既に別の認証方法で登録されています。\n\n多要素認証は未実装です。")
+                          } else {
+                            setError(error)
                           }
                           
-                          // 最大試行回数でロックアウト
-                          if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
-                            setIsLocked(true)
-                            setLockoutTime(new Date())
-                            setError("セキュリティのため、アカウントが一時的にロックされました。15分後に再試行してください。")
+                          // ログイン失敗時の処理（キャンセル以外）
+                          if (error !== "ログインがキャンセルされました") {
+                            const newAttempts = loginAttempts + 1
+                            setLoginAttempts(newAttempts)
+                            
+                            // 3回失敗でTurnstile表示
+                            if (newAttempts >= 3 && !showTurnstile) {
+                              setShowTurnstile(true)
+                            }
+                            
+                            // 最大試行回数でロックアウト
+                            if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
+                              setIsLocked(true)
+                              setLockoutTime(new Date())
+                              setError("セキュリティのため、アカウントが一時的にロックされました。15分後に再試行してください。")
+                            }
                           }
-                        }
-                      }}
-                      disabled={loading || isSnsLocked}
-                    />
+                        }}
+                        disabled={loading || isSnsLocked}
+                      />
 
-                    {/* X（Twitter）サインインボタン */}
-                    <TwitterSignInButton
-                      mode={isSignUp ? "signup" : "signin"}
-                      onClick={() => {
-                        if (isSignUp && !agree) {
-                          setError("アカウント作成には利用規約とプライバシーポリシーへの同意が必要です。")
-                          return false
-                        }
-                        if (showTurnstile && !turnstileToken) {
-                          setError("セキュリティ確認が必要です。")
-                          return false
-                        }
-                        return true
-                      }}
-                      onSuccess={() => {
-                        setSuccess(`Xアカウントで${isSignUp ? "アカウントを作成" : "ログイン"}しました！`)
-                        // 成功時はログイン試行回数をリセット
-                        setLoginAttempts(0)
-                        setShowTurnstile(false)
-                        setTurnstileToken(null)
-                      }}
-                      onError={(error) => {
-                        if (error === "ログインがキャンセルされました") {
-                          setError("ログインがキャンセルされました。\nもう一度お試しください。")
-                        } else if (error.includes("別の認証方法で登録されています") || error.includes("アカウント連携ダイアログ")) {
-                          setError("このメールアドレスは既に別の認証方法で登録されています。\n\n多要素認証は未実装です。")
-                        } else {
-                          setError(error)
-                        }
-                        
-                        // ログイン失敗時の処理（キャンセル以外）
-                        if (error !== "ログインがキャンセルされました") {
-                          const newAttempts = loginAttempts + 1
-                          setLoginAttempts(newAttempts)
-                          
-                          // 3回失敗でTurnstile表示
-                          if (newAttempts >= 3 && !showTurnstile) {
-                            setShowTurnstile(true)
+                      <TwitterSignInButton
+                        mode={isSignUp ? "signup" : "signin"}
+                        onClick={() => {
+                          if (isSignUp && !agree) {
+                            setError("アカウント作成には利用規約とプライバシーポリシーへの同意が必要です。")
+                            return false
+                          }
+                          if (showTurnstile && !turnstileToken) {
+                            setError("セキュリティ確認が必要です。")
+                            return false
+                          }
+                          return true
+                        }}
+                        onSuccess={() => {
+                          setSuccess(`Xアカウントで${isSignUp ? "アカウントを作成" : "ログイン"}しました！`)
+                          // 成功時はログイン試行回数をリセット
+                          setLoginAttempts(0)
+                          setShowTurnstile(false)
+                          setTurnstileToken(null)
+                        }}
+                        onError={(error) => {
+                          if (error === "ログインがキャンセルされました") {
+                            setError("ログインがキャンセルされました。\nもう一度お試しください。")
+                          } else if (error.includes("別の認証方法で登録されています") || error.includes("アカウント連携ダイアログ")) {
+                            setError("このメールアドレスは既に別の認証方法で登録されています。\n\n多要素認証は未実装です。")
+                          } else {
+                            setError(error)
                           }
                           
-                          // 最大試行回数でロックアウト
-                          if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
-                            setIsLocked(true)
-                            setLockoutTime(new Date())
-                            setError("セキュリティのため、アカウントが一時的にロックされました。15分後に再試行してください。")
+                          // ログイン失敗時の処理（キャンセル以外）
+                          if (error !== "ログインがキャンセルされました") {
+                            const newAttempts = loginAttempts + 1
+                            setLoginAttempts(newAttempts)
+                            
+                            // 3回失敗でTurnstile表示
+                            if (newAttempts >= 3 && !showTurnstile) {
+                              setShowTurnstile(true)
+                            }
+                            
+                            // 最大試行回数でロックアウト
+                            if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
+                              setIsLocked(true)
+                              setLockoutTime(new Date())
+                              setError("セキュリティのため、アカウントが一時的にロックされました。15分後に再試行してください。")
+                            }
                           }
-                        }
-                      }}
-                      disabled={loading || isSnsLocked}
-                    />
+                        }}
+                        disabled={loading || isSnsLocked}
+                      />
+                    </div>
                   </form>
 
                   {/* モード切り替え */}

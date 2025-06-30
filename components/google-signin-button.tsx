@@ -79,20 +79,16 @@ export function GoogleSignInButton({ mode, onSuccess, onError, disabled, onClick
     <Button
       type="button"
       variant="outline"
-      className="w-full border-gray-300 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+      size="icon"
+      className="h-12 w-12 rounded-lg border-gray-300 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 hover:scale-105"
       onClick={handleGoogleSignIn}
       disabled={disabled || loading}
+      title={`Googleで${mode === "signup" ? "アカウント作成" : "ログイン"}`}
     >
       {loading ? (
-        <div className="flex items-center">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
-          処理中...
-        </div>
+        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
       ) : (
-        <>
-          <GoogleIcon className="mr-2 h-4 w-4" />
-          <span className="text-gray-700 font-medium">Googleで{mode === "signup" ? "アカウント作成" : "ログイン"}</span>
-        </>
+        <GoogleIcon className="h-6 w-6" />
       )}
     </Button>
   )
