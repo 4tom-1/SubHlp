@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import {
   type User,
   signInWithEmailAndPassword,
@@ -63,6 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const MAX_SNS_LOGIN_ATTEMPTS = 3
   const SNS_LOCKOUT_DURATION = 10 * 60 * 1000 // 10分
 
+  // 認証状態の監視を最適化
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user)
@@ -72,29 +72,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return unsubscribe
   }, [])
 
-  // SNSロックアウト状態のチェック
+  // SNSロックアウト状態のチェックを最適化（1秒間隔から5秒間隔に変更）
   useEffect(() => {
+    if (!snsLockoutTime) return
+
     const checkSnsLockout = () => {
-      if (snsLockoutTime && new Date().getTime() - snsLockoutTime.getTime() > SNS_LOCKOUT_DURATION) {
+      if (new Date().getTime() - snsLockoutTime.getTime() > SNS_LOCKOUT_DURATION) {
         setIsSnsLocked(false)
         setSnsLockoutTime(null)
         setSnsLoginAttempts(0)
       }
     }
 
-    const interval = setInterval(checkSnsLockout, 1000)
+    const interval = setInterval(checkSnsLockout, 5000) // 5秒間隔に変更
     return () => clearInterval(interval)
   }, [snsLockoutTime])
 
-  const signIn = async (email: string, password: string) => {
+  // 関数をuseCallbackでメモ化
+  const signIn = useCallback(async (email: string, password: string) => {
     try {
       await signInWithEmailAndPassword(auth, email, password)
     } catch (error: any) {
       throw new Error(getErrorMessage(error.code))
     }
-  }
+  }, [])
 
-  const signUp = async (email: string, password: string, displayName?: string) => {
+  const signUp = useCallback(async (email: string, password: string, displayName?: string) => {
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password)
       if (displayName && result.user) {
@@ -103,9 +106,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       throw new Error(getErrorMessage(error.code))
     }
-  }
+  }, [])
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = useCallback(async () => {
     // SNSロックアウトチェック
     if (isSnsLocked) {
       throw new Error("SNSログインが一時的にロックされています。しばらく時間をおいてから再試行してください。")
@@ -149,9 +152,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       throw new Error(getSnsErrorMessage(error.code))
     }
-  }
+  }, [isSnsLocked, snsLoginAttempts])
 
-  const signInWithMicrosoft = async () => {
+  const signInWithMicrosoft = useCallback(async () => {
     // SNSロックアウトチェック
     if (isSnsLocked) {
       throw new Error("SNSログインが一時的にロックされています。しばらく時間をおいてから再試行してください。")
@@ -195,9 +198,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       throw new Error(getSnsErrorMessage(error.code))
     }
-  }
+  }, [isSnsLocked, snsLoginAttempts])
 
-  const signInWithTwitter = async () => {
+  const signInWithTwitter = useCallback(async () => {
     // SNSロックアウトチェック
     if (isSnsLocked) {
       throw new Error("SNSログインが一時的にロックされています。しばらく時間をおいてから再試行してください。")
@@ -222,7 +225,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // アカウント連携が必要な場合
       if (error.code === 'auth/account-exists-with-different-credential' && error.email && error.credential) {
         setLinkDialogEmail(error.email)
-        setLinkDialogProvider("X（Twitter）")
+        setLinkDialogProvider("Twitter")
         setLinkDialogCredential(error.credential)
         setShowLinkDialog(true)
         return
@@ -241,28 +244,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       throw new Error(getSnsErrorMessage(error.code))
     }
-  }
+  }, [isSnsLocked, snsLoginAttempts])
 
-  // アカウント連携機能
-  const linkAccount = async (email: string, password: string, credential: any) => {
+  const linkAccount = useCallback(async (email: string, password: string, credential: any) => {
     try {
       await autoLinkAccount(email, password, credential)
       setShowLinkDialog(false)
-      setSnsLoginAttempts(0) // 成功時はログイン試行回数をリセット
     } catch (error: any) {
-      throw error
+      throw new Error(getErrorMessage(error.code))
     }
-  }
+  }, [])
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await signOutUser()
-  }
+  }, [])
 
-  const resetSnsLoginAttempts = () => {
+  const resetSnsLoginAttempts = useCallback(() => {
     setSnsLoginAttempts(0)
     setIsSnsLocked(false)
     setSnsLockoutTime(null)
-  }
+  }, [])
 
   const value = {
     user,
@@ -284,7 +285,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setShowLinkDialog,
   }
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 // Firebase エラーコードを日本語メッセージに変換

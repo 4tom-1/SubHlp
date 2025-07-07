@@ -8,10 +8,12 @@ import { SubscriptionForm } from "./subscription-form"
 import { MonthlyChart } from "./monthly-chart"
 import { NotificationSettings } from "./notification-settings"
 import { ServiceComparison } from "./service-comparison"
-import { Plus, CreditCard, TrendingUp, Bell, Search } from "lucide-react"
+import { CancellationGuide } from "./cancellation-guide"
+import { Plus, CreditCard, TrendingUp, Bell, Search, X } from "lucide-react"
 import { Auth } from "@/components/auth"
 import { Subscription } from "@/types/subscription"
 import { getStatusConfig, isActiveStatus } from "@/lib/utils"
+import { findServiceByName } from "@/lib/subscription-services"
 
 export default function Dashboard() {
   const {
@@ -24,7 +26,7 @@ export default function Dashboard() {
     getTotalYearlySpending,
   } = useSubscriptions()
 
-  const [activeTab, setActiveTab] = useState<"dashboard" | "add" | "chart" | "settings" | "compare" | "edit">("dashboard")
+  const [activeTab, setActiveTab] = useState<"dashboard" | "add" | "chart" | "settings" | "compare" | "edit" | "cancellation">("dashboard")
   const [editTarget, setEditTarget] = useState<null | Subscription>(null)
   const [statusFilter, setStatusFilter] = useState<string>("all")
 
@@ -39,7 +41,7 @@ export default function Dashboard() {
     )
   }
 
-  const activeSubscriptions = subscriptions.filter((sub) => isActiveStatus(sub.status))
+  const activeSubscriptions = subscriptions.filter((sub) => isActiveStatus(sub.status, sub.billingCycle))
   const monthlyTotal = getTotalMonthlySpending()
   const yearlyTotal = getTotalYearlySpending()
 
@@ -76,6 +78,8 @@ export default function Dashboard() {
         return <NotificationSettings />
       case "compare":
         return <ServiceComparison />
+      case "cancellation":
+        return <CancellationGuide subscriptions={subscriptions} />
       default:
         return (
           <div className="space-y-6">
@@ -162,8 +166,8 @@ export default function Dashboard() {
                             <h3 className="font-medium">{sub.name}</h3>
                             <p className="text-sm text-gray-500">{sub.category}</p>
                             <div className="flex items-center space-x-2 mt-1">
-                              <span className={`px-2 py-1 text-xs rounded-full ${getStatusConfig(sub.status).color}`}>
-                                {getStatusConfig(sub.status).icon} {getStatusConfig(sub.status).label}
+                              <span className={`px-2 py-1 text-xs rounded-full ${getStatusConfig(sub.status, sub.billingCycle).color}`}>
+                                {getStatusConfig(sub.status, sub.billingCycle).icon} {getStatusConfig(sub.status, sub.billingCycle).label}
                               </span>
                             </div>
                           </div>
@@ -171,10 +175,14 @@ export default function Dashboard() {
                         <div className="flex items-center space-x-4">
                           <div className="text-right">
                             <p className="font-medium">
-                              ¥{sub.price.toLocaleString()}
-                              <span className="text-sm text-gray-500">
-                                /{sub.billingCycle === "monthly" ? "月" : "年"}
-                              </span>
+                              {sub.billingCycle !== "trial" && sub.billingCycle !== "trial_ended" ? (
+                                <>
+                                  ￥{sub.price.toLocaleString()}
+                                  <span className="text-sm text-gray-500">/{sub.billingCycle === "monthly" ? "月" : "年"}</span>
+                                </>
+                              ) : (
+                                <span className="text-blue-500">トライアル中</span>
+                              )}
                             </p>
                             <p className="text-xs text-gray-500">
                               次回: {new Date(sub.nextPayment).toLocaleDateString("ja-JP")}
@@ -183,6 +191,19 @@ export default function Dashboard() {
                           <Button size="sm" variant="outline" onClick={() => { setEditTarget(sub); setActiveTab("edit") }}>
                             編集
                           </Button>
+                          {(() => {
+                            const service = findServiceByName(sub.name)
+                            return service ? (
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="text-red-600 border-red-300 hover:bg-red-50"
+                                onClick={() => window.open(service.cancellationUrl, '_blank')}
+                              >
+                                解約
+                              </Button>
+                            ) : null
+                          })()}
                           <Button size="sm" variant="destructive" onClick={async () => {
                             if (window.confirm(`「${sub.name}」を削除しますか？`)) {
                               await deleteSubscription(sub.id)
@@ -250,9 +271,10 @@ export default function Dashboard() {
             {[
               { id: "dashboard", label: "ダッシュボード", icon: CreditCard },
               { id: "add", label: "追加", icon: Plus },
-              { id: "chart", label: "グラフ", icon: TrendingUp },
               { id: "settings", label: "通知設定", icon: Bell },
+              { id: "cancellation", label: "解約ガイド", icon: X },
               { id: "compare", label: "サービス比較", icon: Search },
+              { id: "chart", label: "グラフ", icon: TrendingUp },
             ].map((tab) => (
               <button
                 key={tab.id}

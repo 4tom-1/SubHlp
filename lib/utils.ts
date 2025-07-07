@@ -6,7 +6,14 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // ステータス管理用のユーティリティ関数
-export const getStatusConfig = (status: string) => {
+export const getStatusConfig = (status: string, billingCycle?: string) => {
+  if (billingCycle === "trial_ended") {
+    return {
+      label: "トライアル終了",
+      color: "bg-pink-100 text-pink-800",
+      icon: "⏰"
+    }
+  }
   switch (status) {
     case "active":
       return {
@@ -47,10 +54,12 @@ export const getStatusConfig = (status: string) => {
   }
 }
 
-export const isActiveStatus = (status: string) => {
-  return status === "active" || status === "trial"
+export const isActiveStatus = (status: string, billingCycle?: string) => {
+  // trial_endedはアクティブ扱いしない
+  return (status === "active" || status === "trial") && billingCycle !== "trial_ended"
 }
 
-export const isPayingStatus = (status: string) => {
-  return status === "active" || status === "pending_cancellation"
+export const isPayingStatus = (status: string, billingCycle?: string) => {
+  // trial, trial_endedは課金扱いしない
+  return (status === "active" || status === "pending_cancellation") && billingCycle !== "trial" && billingCycle !== "trial_ended"
 }

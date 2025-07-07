@@ -18,7 +18,8 @@ export function MonthlyChart({ subscriptions }: MonthlyChartProps) {
     months.push({
       name: date.toLocaleDateString("ja-JP", { year: "numeric", month: "short" }),
       value: subscriptions
-        .filter((sub) => isActiveStatus(sub.status))
+        .filter((sub) => sub.billingCycle !== "trial" && sub.billingCycle !== "trial_ended")
+        .filter((sub) => isActiveStatus(sub.status, sub.billingCycle))
         .reduce((total, sub) => {
           const monthlyPrice = sub.billingCycle === "yearly" ? sub.price / 12 : sub.price
           return total + monthlyPrice
@@ -62,7 +63,8 @@ export function MonthlyChart({ subscriptions }: MonthlyChartProps) {
           <div className="space-y-3">
             {Object.entries(
               subscriptions
-                .filter((sub) => isActiveStatus(sub.status))
+                .filter((sub) => sub.billingCycle !== "trial" && sub.billingCycle !== "trial_ended")
+                .filter((sub) => isActiveStatus(sub.status, sub.billingCycle))
                 .reduce(
                   (acc, sub) => {
                     const monthlyPrice = sub.billingCycle === "yearly" ? sub.price / 12 : sub.price

@@ -1,14 +1,15 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { Search, ExternalLink, Check } from "lucide-react"
 import type { Subscription } from "@/types/subscription"
+import { findServiceByName, searchServices, type SubscriptionService } from "@/lib/subscription-services"
 
 interface SubscriptionFormProps {
   onSubmit: (subscription: Omit<Subscription, "id">) => void
@@ -48,6 +49,11 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
     status: initialData?.status || ("active" as const),
   })
 
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<SubscriptionService[]>([])
+  const [showSearchResults, setShowSearchResults] = useState(false)
+  const [detectedService, setDetectedService] = useState<SubscriptionService | null>(null)
+
   const [errors, setErrors] = useState<{
     name?: boolean;
     price?: boolean;
@@ -56,27 +62,100 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
     status?: boolean;
   }>({})
 
+  const [nextPaymentType, setNextPaymentType] = useState<"date" | "fromRegister" | "monthlyDay">("monthlyDay")
+  const [registerDate, setRegisterDate] = useState(() => {
+    const today = new Date()
+    return today.toISOString().slice(0, 10)
+  })
+  const [monthsAfter, setMonthsAfter] = useState(1)
+  const [monthlyDay, setMonthlyDay] = useState(1)
+
+  // サービス名の変更を監視して自動検知
+  useEffect(() => {
+    if (formData.name.trim()) {
+      const service = findServiceByName(formData.name)
+      if (service) {
+        setDetectedService(service)
+        // カテゴリも自動設定
+        setFormData(prev => ({ ...prev, category: service.category }))
+      } else {
+        setDetectedService(null)
+      }
+    } else {
+      setDetectedService(null)
+    }
+  }, [formData.name])
+
+  // 検索機能
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+    if (query.trim()) {
+      const results = searchServices(query)
+      setSearchResults(results)
+      setShowSearchResults(true)
+    } else {
+      setShowSearchResults(false)
+    }
+  }
+
+  const selectService = (service: SubscriptionService) => {
+    setFormData(prev => ({
+      ...prev,
+      name: service.name,
+      category: service.category
+    }))
+    setDetectedService(service)
+    setSearchQuery("")
+    setShowSearchResults(false)
+  }
+
+  // nextPaymentTypeの変更時にformData.nextPaymentを自動更新
+  React.useEffect(() => {
+    if (nextPaymentType === "date") return // 手動入力
+    if (nextPaymentType === "fromRegister") {
+      // 登録日からmonthsAfterか月後の日付を計算
+      const reg = new Date(registerDate)
+      reg.setMonth(reg.getMonth() + monthsAfter)
+      setFormData(fd => ({ ...fd, nextPayment: reg.toISOString().slice(0, 10) }))
+    } else if (nextPaymentType === "monthlyDay") {
+      // 今月または来月のmonthlyDay日を計算
+      const today = new Date()
+      let next = new Date(today.getFullYear(), today.getMonth(), monthlyDay)
+      if (next <= today) {
+        next = new Date(today.getFullYear(), today.getMonth() + 1, monthlyDay)
+      }
+      setFormData(fd => ({ ...fd, nextPayment: next.toISOString().slice(0, 10) }))
+    }
+  }, [nextPaymentType, registerDate, monthsAfter, monthlyDay])
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    // priceは数値変換
+    const priceNum = Number(formData.price)
+
     const newErrors = {
       name: !formData.name,
-      price: !formData.price || Number(formData.price) <= 0,
+      // トライアル中は料金が0円でもOK
+      price: formData.billingCycle !== "trial" && (!formData.price || isNaN(priceNum) || priceNum < 0),
       nextPayment: !formData.nextPayment,
       category: !formData.category,
     }
     setErrors(newErrors)
 
     if (Object.values(newErrors).some(error => error)) {
-      if (Number(formData.price) <= 0) {
-        alert("料金は0円より大きい値を入力してください")
+      if (formData.billingCycle !== "trial" && (isNaN(priceNum) || priceNum < 0)) {
+        alert("料金は0円以上の値を入力してください")
       } else {
         alert("必須項目を入力してください")
       }
       return
     }
+
     onSubmit({
       ...formData,
-      price: Number(formData.price)
+      price: isNaN(priceNum) ? 0 : priceNum,
+      // フォームで選択されたbillingCycleをそのまま使う
+      billingCycle: formData.billingCycle,
     })
   }
 
@@ -89,17 +168,77 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="name" className={errors.name ? "text-red-500" : ""}>サービス名 *</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => {
-                setFormData({ ...formData, name: e.target.value })
-                setErrors(prev => ({ ...prev, name: false }))
-              }}
-              placeholder="Netflix, Spotify など"
-              required
-              className={errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}
-            />
+            <div className="relative">
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => {
+                  const value = e.target.value
+                  setFormData({ ...formData, name: value })
+                  setErrors(prev => ({ ...prev, name: false }))
+                  handleSearch(value)
+                }}
+                placeholder="Netflix, Spotify など"
+                required
+                className={errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}
+              />
+              {formData.name && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                  onClick={() => handleSearch(formData.name)}
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              )}
+              {/* サジェスト（検索結果） */}
+              {showSearchResults && searchResults.length > 0 && (
+                <div
+                  className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto z-20"
+                >
+                  {searchResults.map((service) => (
+                    <div
+                      key={service.id}
+                      className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                      onClick={() => selectService(service)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-medium">{service.name}</div>
+                          <div className="text-sm text-gray-500">{service.category}</div>
+                        </div>
+                        <Badge variant="secondary">{service.category}</Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* 検出されたサービス */}
+              {detectedService && (
+                <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span className="text-sm font-medium text-green-800">
+                      {detectedService.name} を検出しました
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">{detectedService.category}</Badge>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => window.open(detectedService.website, '_blank')}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-1" />
+                      公式サイト
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -130,7 +269,7 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
               <Label htmlFor="billingCycle">請求サイクル *</Label>
               <Select
                 value={formData.billingCycle}
-                onValueChange={(value: "monthly" | "yearly") => setFormData({ ...formData, billingCycle: value })}
+                onValueChange={(value: "monthly" | "yearly" | "trial") => setFormData({ ...formData, billingCycle: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -138,25 +277,95 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
                 <SelectContent>
                   <SelectItem value="monthly">月額</SelectItem>
                   <SelectItem value="yearly">年額</SelectItem>
+                  <SelectItem value="trial">トライアル</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div>
-            <Label htmlFor="nextPayment" className={errors.nextPayment ? "text-red-500" : ""}>次回支払日 *</Label>
-            <Input
-              id="nextPayment"
-              type="date"
-              value={formData.nextPayment}
-              onChange={(e) => {
-                setFormData({ ...formData, nextPayment: e.target.value })
-                setErrors(prev => ({ ...prev, nextPayment: false }))
-              }}
-              required
-              className={errors.nextPayment ? "border-red-500 focus-visible:ring-red-500" : ""}
-            />
+            <Label>次回支払日の入力方法 *</Label>
+            <Select value={nextPaymentType} onValueChange={v => setNextPaymentType(v as any)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="monthlyDay">毎月の〇日</SelectItem>
+                <SelectItem value="fromRegister">登録日から〇か月後</SelectItem>
+                <SelectItem value="date">日付を直接指定</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+
+          {nextPaymentType === "fromRegister" && (
+            <div className="flex flex-row flex-nowrap gap-4 items-center overflow-x-auto">
+              <div>
+                <Label htmlFor="registerDate">登録日</Label>
+                <Input
+                  id="registerDate"
+                  type="date"
+                  value={registerDate}
+                  onChange={e => setRegisterDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="monthsAfter">何か月後</Label>
+                <Select value={monthsAfter.toString()} onValueChange={v => setMonthsAfter(Number(v))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[...Array(12)].map((_, i) => (
+                      <SelectItem key={i+1} value={(i+1).toString()}>{i+1}か月後</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>次回支払日</Label>
+                <Input type="date" value={formData.nextPayment} readOnly />
+              </div>
+            </div>
+          )}
+
+          {nextPaymentType === "monthlyDay" && (
+            <div className="flex flex-row flex-nowrap gap-4 items-center overflow-x-auto">
+              <div>
+                <Label htmlFor="monthlyDay">毎月の</Label>
+                <Select value={monthlyDay.toString()} onValueChange={v => setMonthlyDay(Number(v))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[...Array(28)].map((_, i) => (
+                      <SelectItem key={i+1} value={(i+1).toString()}>{i+1}日</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>次回支払日</Label>
+                <Input type="date" value={formData.nextPayment} readOnly />
+              </div>
+            </div>
+          )}
+
+          {nextPaymentType === "date" && (
+            <div>
+              <Label htmlFor="nextPayment" className={errors.nextPayment ? "text-red-500" : ""}>次回支払日 *</Label>
+              <Input
+                id="nextPayment"
+                type="date"
+                value={formData.nextPayment}
+                onChange={(e) => {
+                  setFormData({ ...formData, nextPayment: e.target.value })
+                  setErrors(prev => ({ ...prev, nextPayment: false }))
+                }}
+                required
+                className={errors.nextPayment ? "border-red-500 focus-visible:ring-red-500" : ""}
+              />
+            </div>
+          )}
 
           <div>
             <Label htmlFor="category" className={errors.category ? "text-red-500" : ""}>カテゴリ *</Label>

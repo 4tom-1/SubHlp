@@ -2,7 +2,7 @@ export interface Subscription {
   id: string
   name: string
   price: number
-  billingCycle: "monthly" | "yearly"
+  billingCycle: "monthly" | "yearly" | "trial" | "trial_ended"
   nextPayment: string
   category: string
   color: string
