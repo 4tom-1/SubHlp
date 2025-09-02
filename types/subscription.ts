@@ -1,3 +1,13 @@
+export interface PaymentMethod {
+  id: string
+  type: "credit_card" | "debit_card" | "bank_transfer" | "digital_wallet" | "other"
+  name: string
+  lastFourDigits?: string
+  expiryDate?: string
+  isDefault: boolean
+  createdAt: string
+}
+
 export interface Subscription {
   id: string
   name: string
@@ -9,6 +19,7 @@ export interface Subscription {
   status: "active" | "paused" | "cancelled" | "pending_cancellation" | "trial"
   serviceUrl?: string
   paymentUrl?: string
+  paymentMethodId?: string
 }
 
 export interface NotificationSettings {

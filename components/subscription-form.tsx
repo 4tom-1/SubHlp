@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Search, ExternalLink, Check } from "lucide-react"
+import { Search, ExternalLink, Check, CreditCard } from "lucide-react"
 import type { Subscription } from "@/types/subscription"
 import { findServiceByName, searchServices, type SubscriptionService } from "@/lib/subscription-services"
+import { usePaymentMethods } from "@/hooks/usePaymentMethods"
 
 interface SubscriptionFormProps {
   onSubmit: (subscription: Omit<Subscription, "id">) => void
@@ -39,6 +40,7 @@ const statuses = [
 const colors = ["#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6", "#EC4899", "#06B6D4", "#84CC16"]
 
 export function SubscriptionForm({ onSubmit, onCancel, initialData }: SubscriptionFormProps) {
+  const { paymentMethods } = usePaymentMethods()
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     price: initialData?.price || "",
@@ -47,6 +49,7 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
     category: initialData?.category || "",
     color: initialData?.color || colors[0],
     status: initialData?.status || ("active" as const),
+    paymentMethodId: initialData?.paymentMethodId || "none",
   })
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -156,18 +159,20 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
       price: isNaN(priceNum) ? 0 : priceNum,
       // フォームで選択されたbillingCycleをそのまま使う
       billingCycle: formData.billingCycle,
+      // 支払い方法が"none"の場合は空文字列に変換
+      paymentMethodId: formData.paymentMethodId === "none" ? "" : formData.paymentMethodId,
     })
   }
 
   return (
-    <Card className="max-w-2xl mx-auto">
+    <Card className="max-w-2xl mx-auto shadow-none border-none rounded-none">
       <CardHeader>
-        <CardTitle>{initialData ? "サブスクリプション編集" : "新しいサブスクリプション追加"}</CardTitle>
+        <CardTitle className="text-lg sm:text-xl">{initialData ? "サブスクリプション編集" : "新しいサブスクリプション追加"}</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div>
-            <Label htmlFor="name" className={errors.name ? "text-red-500" : ""}>サービス名 *</Label>
+            <Label htmlFor="name" className={`text-sm ${errors.name ? "text-red-500" : ""}`}>サービス名 *</Label>
             <div className="relative">
               <Input
                 id="name"
@@ -180,7 +185,7 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
                 }}
                 placeholder="Netflix, Spotify など"
                 required
-                className={errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}
+                className={`text-sm ${errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}`}
               />
               {formData.name && (
                 <Button
@@ -206,10 +211,10 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="font-medium">{service.name}</div>
-                          <div className="text-sm text-gray-500">{service.category}</div>
+                          <div className="font-medium text-sm">{service.name}</div>
+                          <div className="text-xs text-gray-500">{service.category}</div>
                         </div>
-                        <Badge variant="secondary">{service.category}</Badge>
+                        <Badge variant="secondary" className="text-xs">{service.category}</Badge>
                       </div>
                     </div>
                   ))}
@@ -224,15 +229,16 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
                       {detectedService.name} を検出しました
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">{detectedService.category}</Badge>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">{detectedService.category}</Badge>
                     <Button
                       type="button"
                       size="sm"
                       variant="outline"
                       onClick={() => window.open(detectedService.website, '_blank')}
+                      className="text-xs"
                     >
-                      <ExternalLink className="h-4 w-4 mr-1" />
+                      <ExternalLink className="h-3 w-3 mr-1" />
                       公式サイト
                     </Button>
                   </div>
@@ -241,9 +247,9 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="price" className={errors.price ? "text-red-500" : ""}>料金 *</Label>
+              <Label htmlFor="price" className={`text-sm ${errors.price ? "text-red-500" : ""}`}>料金 *</Label>
               <Input
                 id="price"
                 type="text"
@@ -259,19 +265,19 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
                 }}
                 placeholder="金額を入力してください"
                 required
-                className={`[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
+                className={`text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
                   errors.price ? "border-red-500 focus-visible:ring-red-500" : ""
                 }`}
               />
             </div>
 
             <div>
-              <Label htmlFor="billingCycle">請求サイクル *</Label>
+              <Label htmlFor="billingCycle" className="text-sm">請求サイクル *</Label>
               <Select
                 value={formData.billingCycle}
                 onValueChange={(value: "monthly" | "yearly" | "trial") => setFormData({ ...formData, billingCycle: value })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -284,9 +290,53 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
           </div>
 
           <div>
-            <Label>次回支払日の入力方法 *</Label>
+            <Label className="text-sm">支払い方法</Label>
+            <Select 
+              value={formData.paymentMethodId} 
+              onValueChange={(value) => {
+                setFormData({ ...formData, paymentMethodId: value })
+              }}
+            >
+              <SelectTrigger className="text-sm">
+                <SelectValue placeholder="支払い方法を選択" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">支払い方法なし</SelectItem>
+                {paymentMethods.map((pm) => (
+                  <SelectItem key={pm.id} value={pm.id}>
+                    <div className="flex items-center space-x-2">
+                      <CreditCard className="h-4 w-4" />
+                      <span>{pm.name}</span>
+                      {pm.isDefault && (
+                        <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                          デフォルト
+                        </span>
+                      )}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {paymentMethods.length === 0 && (
+              <p className="text-xs text-gray-500 mt-1">
+                支払い方法が登録されていません。
+                <button
+                  type="button"
+                  onClick={() => window.location.href = '/dashboard?tab=payment'}
+                  className="text-blue-600 hover:underline ml-1"
+                >
+                  支払い方法を追加
+                </button>
+              </p>
+            )}
+          </div>
+
+
+
+          <div>
+            <Label className="text-sm">次回支払日の入力方法 *</Label>
             <Select value={nextPaymentType} onValueChange={v => setNextPaymentType(v as any)}>
-              <SelectTrigger>
+              <SelectTrigger className="text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -298,20 +348,21 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
           </div>
 
           {nextPaymentType === "fromRegister" && (
-            <div className="flex flex-row flex-nowrap gap-4 items-center overflow-x-auto">
-              <div>
-                <Label htmlFor="registerDate">登録日</Label>
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+              <div className="flex-1 min-w-0">
+                <Label htmlFor="registerDate" className="text-sm">登録日</Label>
                 <Input
                   id="registerDate"
                   type="date"
                   value={registerDate}
                   onChange={e => setRegisterDate(e.target.value)}
+                  className="text-sm"
                 />
               </div>
-              <div>
-                <Label htmlFor="monthsAfter">何か月後</Label>
+              <div className="flex-1 min-w-0">
+                <Label htmlFor="monthsAfter" className="text-sm">何か月後</Label>
                 <Select value={monthsAfter.toString()} onValueChange={v => setMonthsAfter(Number(v))}>
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -321,19 +372,19 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label>次回支払日</Label>
-                <Input type="date" value={formData.nextPayment} readOnly />
+              <div className="flex-1 min-w-0">
+                <Label className="text-sm">次回支払日</Label>
+                <Input type="date" value={formData.nextPayment} readOnly className="text-sm" />
               </div>
             </div>
           )}
 
           {nextPaymentType === "monthlyDay" && (
-            <div className="flex flex-row flex-nowrap gap-4 items-center overflow-x-auto">
-              <div>
-                <Label htmlFor="monthlyDay">毎月の</Label>
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+              <div className="flex-1 min-w-0">
+                <Label htmlFor="monthlyDay" className="text-sm">毎月の</Label>
                 <Select value={monthlyDay.toString()} onValueChange={v => setMonthlyDay(Number(v))}>
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -343,16 +394,16 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label>次回支払日</Label>
-                <Input type="date" value={formData.nextPayment} readOnly />
+              <div className="flex-1 min-w-0">
+                <Label className="text-sm">次回支払日</Label>
+                <Input type="date" value={formData.nextPayment} readOnly className="text-sm" />
               </div>
             </div>
           )}
 
           {nextPaymentType === "date" && (
             <div>
-              <Label htmlFor="nextPayment" className={errors.nextPayment ? "text-red-500" : ""}>次回支払日 *</Label>
+              <Label htmlFor="nextPayment" className={`text-sm ${errors.nextPayment ? "text-red-500" : ""}`}>次回支払日 *</Label>
               <Input
                 id="nextPayment"
                 type="date"
@@ -362,13 +413,13 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
                   setErrors(prev => ({ ...prev, nextPayment: false }))
                 }}
                 required
-                className={errors.nextPayment ? "border-red-500 focus-visible:ring-red-500" : ""}
+                className={`text-sm ${errors.nextPayment ? "border-red-500 focus-visible:ring-red-500" : ""}`}
               />
             </div>
           )}
 
           <div>
-            <Label htmlFor="category" className={errors.category ? "text-red-500" : ""}>カテゴリ *</Label>
+            <Label htmlFor="category" className={`text-sm ${errors.category ? "text-red-500" : ""}`}>カテゴリ *</Label>
             <Select 
               value={formData.category} 
               onValueChange={(value) => {
@@ -376,7 +427,7 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
                 setErrors(prev => ({ ...prev, category: false }))
               }}
             >
-              <SelectTrigger className={errors.category ? "border-red-500 focus-visible:ring-red-500" : ""}>
+              <SelectTrigger className={`text-sm ${errors.category ? "border-red-500 focus-visible:ring-red-500" : ""}`}>
                 <SelectValue placeholder="カテゴリを選択" />
               </SelectTrigger>
               <SelectContent>
@@ -390,14 +441,14 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
           </div>
 
           <div>
-            <Label>ステータス</Label>
+            <Label className="text-sm">ステータス</Label>
             <Select 
               value={formData.status} 
               onValueChange={(value: "active" | "paused" | "cancelled" | "pending_cancellation" | "trial") => {
                 setFormData({ ...formData, status: value })
               }}
             >
-              <SelectTrigger className={errors.status ? "border-red-500 focus-visible:ring-red-500" : ""}>
+              <SelectTrigger className={`text-sm ${errors.status ? "border-red-500 focus-visible:ring-red-500" : ""}`}>
                 <SelectValue placeholder="ステータスを選択" />
               </SelectTrigger>
               <SelectContent>
@@ -411,13 +462,13 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
           </div>
 
           <div>
-            <Label>カラー</Label>
-            <div className="flex space-x-2 mt-2">
+            <Label className="text-sm">カラー</Label>
+            <div className="flex flex-wrap gap-2 mt-2">
               {colors.map((color) => (
                 <button
                   key={color}
                   type="button"
-                  className={`w-8 h-8 rounded-full border-2 ${
+                  className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 ${
                     formData.color === color ? "border-gray-800" : "border-gray-300"
                   }`}
                   style={{ backgroundColor: color }}
@@ -427,11 +478,11 @@ export function SubscriptionForm({ onSubmit, onCancel, initialData }: Subscripti
             </div>
           </div>
 
-          <div className="flex space-x-3 pt-4">
-            <Button type="submit" className="flex-1">
+          <div className="flex flex-col sm:flex-row gap-3 pt-4">
+            <Button type="submit" className="flex-1 text-sm">
               {initialData ? "更新" : "追加"}
             </Button>
-            <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+            <Button type="button" variant="outline" onClick={onCancel} className="flex-1 text-sm">
               キャンセル
             </Button>
           </div>

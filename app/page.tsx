@@ -15,7 +15,8 @@ export default function Home() {
     }
   }, [user, loading, router])
 
-  if (loading || !user) {
+  // ローディング中またはユーザーが未認証の場合はローディング表示
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
@@ -23,5 +24,11 @@ export default function Home() {
     )
   }
 
-  return <Dashboard />
+  // ユーザーが認証済みの場合のみダッシュボードを表示
+  if (user) {
+    return <Dashboard />
+  }
+
+  // 認証されていない場合は何も表示しない（ログインページにリダイレクトされる）
+  return null
 }

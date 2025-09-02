@@ -27,6 +27,30 @@ interface CancellationGuideProps {
   subscriptions: Subscription[]
 }
 
+interface GuideListItemProps {
+  children: React.ReactNode
+  idx: number
+  className?: string
+}
+function GuideListItem({ children, idx, className }: GuideListItemProps) {
+  const [mounted, setMounted] = React.useState(false)
+  React.useEffect(() => {
+    const timeout = setTimeout(() => setMounted(true), 50 + idx * 60)
+    return () => clearTimeout(timeout)
+  }, [])
+  return (
+    <div
+      className={
+        `${className ?? ''} transition-all duration-300 opacity-0 translate-y-4` +
+        (mounted ? " opacity-100 translate-y-0" : "")
+      }
+      style={{ transitionDelay: `${idx * 60}ms` }}
+    >
+      {children}
+    </div>
+  )
+}
+
 export function CancellationGuide({ subscriptions }: CancellationGuideProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
@@ -117,8 +141,8 @@ export function CancellationGuide({ subscriptions }: CancellationGuideProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {matchedServices.map(({ subscription, service }) => (
-                <div key={subscription.id} className="border rounded-lg p-4 bg-orange-50">
+              {matchedServices.map(({ subscription, service }, idx) => (
+                <GuideListItem key={subscription.id} idx={idx} className="border rounded-lg p-4 bg-orange-50">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
@@ -162,7 +186,7 @@ export function CancellationGuide({ subscriptions }: CancellationGuideProps) {
                       </div>
                     </div>
                   </div>
-                </div>
+                </GuideListItem>
               ))}
             </div>
           </CardContent>
@@ -185,8 +209,8 @@ export function CancellationGuide({ subscriptions }: CancellationGuideProps) {
             </div>
           ) : (
             <div className="grid gap-4">
-              {searchResults.map((service) => (
-                <div key={service.id} className="border rounded-lg p-4 hover:bg-gray-50">
+              {searchResults.map((service, idx) => (
+                <GuideListItem key={service.id} idx={idx} className="border rounded-lg p-4 hover:bg-gray-50">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
@@ -227,7 +251,7 @@ export function CancellationGuide({ subscriptions }: CancellationGuideProps) {
                       </div>
                     </div>
                   </div>
-                </div>
+                </GuideListItem>
               ))}
             </div>
           )}

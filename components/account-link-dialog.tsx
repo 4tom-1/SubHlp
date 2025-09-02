@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,6 +29,21 @@ export function AccountLinkDialog({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  // --- 追加: アニメーション用のマウント管理 ---
+  const [show, setShow] = useState(isOpen)
+  const [animate, setAnimate] = useState(false)
+
+  useEffect(() => {
+    if (isOpen) {
+      setShow(true)
+      setTimeout(() => setAnimate(true), 10) // マウント直後にアニメーションON
+    } else if (show) {
+      setAnimate(false)
+      // アニメーション終了後にアンマウント
+      const timeout = setTimeout(() => setShow(false), 200)
+      return () => clearTimeout(timeout)
+    }
+  }, [isOpen])
 
   const handleConfirm = async () => {
     if (!password.trim()) {
@@ -59,11 +74,15 @@ export function AccountLinkDialog({
     onCancel()
   }
 
-  if (!isOpen) return null
+  if (!show) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md shadow-2xl">
+    <div
+      className={`fixed inset-0 flex items-center justify-center z-50 p-4 transition-opacity duration-200 ${animate ? 'bg-black bg-opacity-50 opacity-100' : 'bg-black bg-opacity-0 opacity-0'}`}
+    >
+      <Card
+        className={`w-full max-w-md shadow-2xl transform transition-all duration-200 ${animate ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+      >
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-2">
             <Link className="h-8 w-8 text-blue-600 mr-2" />

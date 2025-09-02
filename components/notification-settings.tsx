@@ -48,16 +48,16 @@ export function NotificationSettings() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>通知設定</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">通知設定</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="email-notifications">メール通知</Label>
-              <p className="text-sm text-gray-500">支払日前にメールで通知します</p>
+        <CardContent className="space-y-4 sm:space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex-1">
+              <Label htmlFor="email-notifications" className="text-sm sm:text-base">メール通知</Label>
+              <p className="text-xs sm:text-sm text-gray-500">支払日前にメールで通知します</p>
             </div>
             <Switch
               id="email-notifications"
@@ -66,14 +66,14 @@ export function NotificationSettings() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="browser-notifications">ブラウザ通知</Label>
-              <p className="text-sm text-gray-500">ブラウザのプッシュ通知を使用します</p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex-1">
+              <Label htmlFor="browser-notifications" className="text-sm sm:text-base">ブラウザ通知</Label>
+              <p className="text-xs sm:text-sm text-gray-500">ブラウザのプッシュ通知を使用します</p>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               {!settings.browser && (
-                <Button size="sm" variant="outline" onClick={requestNotificationPermission}>
+                <Button size="sm" variant="outline" onClick={requestNotificationPermission} className="text-xs">
                   許可
                 </Button>
               )}
@@ -87,12 +87,12 @@ export function NotificationSettings() {
           </div>
 
           <div>
-            <Label htmlFor="days-before">通知タイミング</Label>
+            <Label htmlFor="days-before" className="text-sm sm:text-base">通知タイミング</Label>
             <Select
               value={settings.daysBeforePayment.toString()}
               onValueChange={(value) => setSettings({ ...settings, daysBeforePayment: Number(value) })}
             >
-              <SelectTrigger className="mt-2">
+              <SelectTrigger className="mt-2 text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -104,7 +104,7 @@ export function NotificationSettings() {
             </Select>
           </div>
 
-          <Button onClick={handleSave} className="w-full">
+          <Button onClick={handleSave} className="w-full text-sm">
             設定を保存
           </Button>
         </CardContent>
@@ -112,10 +112,10 @@ export function NotificationSettings() {
 
       <Card>
         <CardHeader>
-          <CardTitle>通知テスト</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">通知テスト</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-gray-600 mb-4">通知が正常に動作するかテストできます</p>
+          <p className="text-xs sm:text-sm text-gray-600 mb-4">通知が正常に動作するかテストできます</p>
           <Button
             variant="outline"
             onClick={() => {
@@ -128,6 +128,7 @@ export function NotificationSettings() {
                 alert("テスト通知: Netflixの支払いが3日後に予定されています")
               }
             }}
+            className="text-sm"
           >
             テスト通知を送信
           </Button>

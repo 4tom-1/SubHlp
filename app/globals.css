@@ -12,6 +12,40 @@ body {
   }
 }
 
+/* レスポンシブデザインのための追加設定 */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+  
+  /* モバイルでのタッチ操作を改善 */
+  @media (max-width: 768px) {
+    button, input, select, textarea {
+      font-size: 16px; /* iOS Safariでのズームを防ぐ */
+    }
+  }
+  
+  /* スクロールバーのスタイリング */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
