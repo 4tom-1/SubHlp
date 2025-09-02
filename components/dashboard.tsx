@@ -11,13 +11,15 @@ import { NotificationSettings } from "./notification-settings"
 import { ServiceComparison } from "./service-comparison"
 import { CancellationGuide } from "./cancellation-guide"
 import { PaymentMethodsList } from "./payment-methods"
-import { Plus, CreditCard, TrendingUp, Bell, Search, X, Menu, Wallet } from "lucide-react"
+import { Plus, CreditCard, TrendingUp, Bell, Search, X, Menu, Wallet, ChevronLeft, ChevronRight } from "lucide-react"
 import { Auth } from "@/components/auth"
 import { Subscription, PaymentMethod } from "@/types/subscription"
 import { getStatusConfig, isActiveStatus } from "@/lib/utils"
 import { findServiceByName } from "@/lib/subscription-services"
 import React from "react"
 import Modal from "@/components/ui/modal"
+// @ts-ignore
+import { motion, AnimatePresence } from "framer-motion"
 
 interface SubscriptionListItemProps {
   sub: Subscription
@@ -129,6 +131,37 @@ export default function Dashboard() {
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
+  const [navScrollLeft, setNavScrollLeft] = useState(0)
+  const [showLeft, setShowLeft] = useState(false)
+  const [showRight, setShowRight] = useState(false)
+
+  const navRef = React.useRef<HTMLDivElement>(null)
+
+  const scrollNav = (direction: 'left' | 'right') => {
+    if (navRef.current) {
+      const scrollAmount = 200
+      const newScrollLeft = navRef.current.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount)
+      navRef.current.scrollTo({ left: newScrollLeft, behavior: 'smooth' })
+      setNavScrollLeft(newScrollLeft)
+    }
+  }
+
+  // タブのスクロール状態を監視してボタン表示を制御
+  React.useEffect(() => {
+    const nav = navRef.current
+    if (!nav) return
+    const update = () => {
+      setShowLeft(nav.scrollLeft > 0)
+      setShowRight(nav.scrollLeft + nav.clientWidth < nav.scrollWidth - 1)
+    }
+    update()
+    nav.addEventListener('scroll', update)
+    window.addEventListener('resize', update)
+    return () => {
+      nav.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [])
 
   function handleEdit(sub: Subscription) {
     setEditTarget(sub)
@@ -305,9 +338,9 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl">
       {/* ヘッダー */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b rounded-t-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-3">
@@ -336,37 +369,26 @@ export default function Dashboard() {
       </header>
 
       {/* ナビゲーション */}
-      <nav className="bg-white border-b">
+      <nav className="bg-white border-b rounded-b-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* デスクトップナビゲーション */}
-          <div className="hidden sm:flex space-x-1 overflow-x-auto">
-            {[
-              { id: "dashboard", label: "ダッシュボード", icon: CreditCard },
-              { id: "add", label: "追加", icon: Plus },
-              { id: "payment", label: "支払い方法", icon: Wallet },
-              { id: "settings", label: "通知設定", icon: Bell },
-              { id: "cancellation", label: "解約ガイド", icon: X },
-              { id: "compare", label: "サービス比較", icon: Search },
-              { id: "chart", label: "グラフ", icon: TrendingUp },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center space-x-2 px-3 sm:px-4 py-2 sm:py-3 text-sm font-medium border-b-2 whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
+          <div className="hidden sm:flex items-center space-x-2 bg-white">
+            {/* 左スクロールボタン */}
+            {showLeft && (
+              <motion.button
+                onClick={() => scrollNav('left')}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
               >
-                <tab.icon className="h-4 w-4" />
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* モバイルナビゲーション */}
-          {mobileMenuOpen && (
-            <div className="sm:hidden py-2 space-y-1">
+                <ChevronLeft className="h-4 w-4 text-gray-600" />
+              </motion.button>
+            )}
+            {/* タブコンテナ */}
+            <div 
+              ref={navRef}
+              className="flex-1 flex space-x-1 overflow-x-auto overflow-y-hidden tab-scrollbar"
+            >
               {[
                 { id: "dashboard", label: "ダッシュボード", icon: CreditCard },
                 { id: "add", label: "追加", icon: Plus },
@@ -376,29 +398,109 @@ export default function Dashboard() {
                 { id: "compare", label: "サービス比較", icon: Search },
                 { id: "chart", label: "グラフ", icon: TrendingUp },
               ].map((tab) => (
-                <button
+                <motion.button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`flex items-center space-x-2 px-3 sm:px-4 py-2 sm:py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors duration-200 ${
+                    activeTab === tab.id
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <motion.div
+                    animate={{ 
+                      scale: activeTab === tab.id ? 1.1 : 1,
+                      rotate: activeTab === tab.id ? 5 : 0
+                    }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <tab.icon className="h-4 w-4" />
+                  </motion.div>
+                  <span>{tab.label}</span>
+                </motion.button>
+              ))}
+            </div>
+            {/* 右スクロールボタン */}
+            {showRight && (
+              <motion.button
+                onClick={() => scrollNav('right')}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                <ChevronRight className="h-4 w-4 text-gray-600" />
+              </motion.button>
+            )}
+          </div>
+
+          {/* モバイルナビゲーション */}
+          {mobileMenuOpen && (
+            <motion.div 
+              className="sm:hidden py-2 space-y-1"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {[
+                { id: "dashboard", label: "ダッシュボード", icon: CreditCard },
+                { id: "add", label: "追加", icon: Plus },
+                { id: "payment", label: "支払い方法", icon: Wallet },
+                { id: "settings", label: "通知設定", icon: Bell },
+                { id: "cancellation", label: "解約ガイド", icon: X },
+                { id: "compare", label: "サービス比較", icon: Search },
+                { id: "chart", label: "グラフ", icon: TrendingUp },
+              ].map((tab, index) => (
+                <motion.button
                   key={tab.id}
                   onClick={() => {
                     setActiveTab(tab.id as any)
                     setMobileMenuOpen(false)
                   }}
-                  className={`flex items-center space-x-2 w-full px-3 py-2 text-sm font-medium rounded-md ${
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ scale: 1.02, x: 5 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex items-center space-x-2 w-full px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
                     activeTab === tab.id
                       ? "bg-blue-50 text-blue-600"
                       : "text-gray-500 hover:bg-gray-50"
                   }`}
                 >
-                  <tab.icon className="h-4 w-4" />
+                  <motion.div
+                    animate={{ 
+                      scale: activeTab === tab.id ? 1.1 : 1,
+                      rotate: activeTab === tab.id ? 5 : 0
+                    }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <tab.icon className="h-4 w-4" />
+                  </motion.div>
                   <span>{tab.label}</span>
-                </button>
+                </motion.button>
               ))}
-            </div>
+            </motion.div>
           )}
         </div>
       </nav>
 
       {/* メインコンテンツ */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">{renderContent()}</main>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {renderContent()}
+          </motion.div>
+        </AnimatePresence>
+      </main>
 
       {/* モーダル表示 */}
       <Modal open={editModalOpen} onClose={() => { setEditTarget(null); setEditModalOpen(false) }}>

@@ -46,6 +46,7 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
   
   // SNSログイン用のセキュリティ状態
   const [snsLoginAttempts, setSnsLoginAttempts] = useState(0)
@@ -62,15 +63,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const MAX_SNS_LOGIN_ATTEMPTS = 3
   const SNS_LOCKOUT_DURATION = 10 * 60 * 1000 // 10分
 
+  // クライアントサイドでのマウント確認
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   // 認証状態の監視を最適化
   useEffect(() => {
+    if (!mounted) return
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user)
       setLoading(false)
     })
 
     return unsubscribe
-  }, [])
+  }, [mounted])
 
   // SNSロックアウト状態のチェックを最適化（1秒間隔から5秒間隔に変更）
   useEffect(() => {
@@ -267,7 +275,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = {
     user,
-    loading,
+    loading: !mounted || loading,
     signIn,
     signUp,
     signInWithGoogle,

@@ -126,3 +126,28 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* スクロールバーを非表示にするクラス */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10 */
+  scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+/* タブナビゲーション用の太い横スクロールバー */
+.tab-scrollbar::-webkit-scrollbar {
+  height: 10px;
+}
+.tab-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+.tab-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.tab-scrollbar {
+  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-width: thin;
+}
