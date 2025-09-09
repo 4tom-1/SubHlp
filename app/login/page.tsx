@@ -238,35 +238,35 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col">
       {/* ヘッダー */}
-      <header className="w-full text-center py-6">
+      <header className="w-full text-center py-4 sm:py-6">
         <div className="flex items-center justify-center space-x-2">
-          <CreditCard className="h-8 w-8 text-blue-600" />
-          <h1 className="text-2xl font-bold text-gray-800">サブ助</h1>
+          <CreditCard className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">サブ助</h1>
         </div>
-        <p className="text-sm text-gray-600 mt-2">サブスクリプション管理を簡単に</p>
+        <p className="text-xs sm:text-sm text-gray-600 mt-2">サブスクリプション管理を簡単に</p>
       </header>
 
       {/* メインコンテンツ */}
-      <div className="flex-1 flex items-center justify-center px-4">
-        <div className="w-full max-w-lg space-y-6">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg space-y-4 sm:space-y-6">
           {/* エラーメッセージ */}
           {error && (
             <Alert variant="destructive">
-              <AlertDescription className="whitespace-pre-line">{error}</AlertDescription>
+              <AlertDescription className="whitespace-pre-line text-sm">{error}</AlertDescription>
             </Alert>
           )}
 
           {/* 成功メッセージ */}
           {success && (
             <Alert>
-              <AlertDescription>{success}</AlertDescription>
+              <AlertDescription className="text-sm">{success}</AlertDescription>
             </Alert>
           )}
 
           {/* ロックアウトメッセージ */}
           {isLocked && lockoutTime && (
             <Alert variant="destructive">
-              <AlertDescription>
+              <AlertDescription className="text-sm">
                 アカウントが一時的にロックされています。
                 <br />
                 残り時間: {Math.max(0, Math.ceil((LOCKOUT_DURATION - (new Date().getTime() - lockoutTime.getTime())) / 1000 / 60))}分
@@ -301,14 +301,14 @@ export default function LoginPage() {
 
                     {resetMsg && (
                       <Alert>
-                        <AlertDescription>{resetMsg}</AlertDescription>
+                        <AlertDescription className="text-sm">{resetMsg}</AlertDescription>
                       </Alert>
                     )}
 
-                    <div className="flex space-x-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Button 
                         onClick={handlePasswordReset} 
-                        className="flex-1 text-sm py-2"
+                        className="text-sm py-2"
                         disabled={!resetEmail}
                       >
                         リセットメール送信
@@ -329,15 +329,15 @@ export default function LoginPage() {
             <>
               {/* ログインフォーム */}
               <Card className="shadow-xl">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-center text-lg">{isSignUp ? "アカウント作成" : "ログイン"}</CardTitle>
+                <CardHeader>
+                  <CardTitle className="text-center text-sm sm:text-base">{isSignUp ? "アカウント作成" : "ログイン"}</CardTitle>
                 </CardHeader>
-                <CardContent className="px-6 pb-6">
-                  <form onSubmit={handleSubmit} className="space-y-4">
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-3">
                     {/* 表示名（サインアップ時のみ） */}
                     {isSignUp && (
                       <div className="space-y-2">
-                        <Label htmlFor="displayName">
+                        <Label htmlFor="displayName" className="text-sm">
                           表示名<span className="text-red-500">*</span>
                         </Label>
                         <div className="relative">
@@ -348,7 +348,7 @@ export default function LoginPage() {
                             value={displayName}
                             onChange={(e) => setDisplayName(e.target.value)}
                             placeholder="山田太郎"
-                            className="pl-10"
+                            className="pl-10 text-sm"
                             required={isSignUp}
                           />
                         </div>
@@ -362,7 +362,7 @@ export default function LoginPage() {
 
                     {/* メールアドレス */}
                     <div className="space-y-2">
-                      <Label htmlFor="email">
+                      <Label htmlFor="email" className="text-sm">
                         メールアドレス<span className="text-red-500">*</span>
                       </Label>
                       <div className="relative">
@@ -373,7 +373,7 @@ export default function LoginPage() {
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="example@email.com"
-                          className="pl-10"
+                          className="pl-10 text-sm"
                           required
                         />
                       </div>
@@ -381,7 +381,7 @@ export default function LoginPage() {
 
                     {/* パスワード */}
                     <div className="space-y-2">
-                      <Label htmlFor="password">
+                      <Label htmlFor="password" className="text-sm">
                         パスワード<span className="text-red-500">*</span>
                       </Label>
                       <div className="relative">
@@ -392,7 +392,7 @@ export default function LoginPage() {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="••••••••"
-                          className="pl-10 pr-10"
+                          className="pl-10 pr-10 text-sm"
                           required
                         />
                         <button
@@ -408,7 +408,7 @@ export default function LoginPage() {
                     {/* Turnstile */}
                     {showTurnstile && (
                       <div className="space-y-2">
-                        <Label>セキュリティ確認</Label>
+                        <Label className="text-sm">セキュリティ確認</Label>
                         <TurnstileComponent
                           onVerify={handleTurnstileVerify}
                           onError={handleTurnstileError}
@@ -416,7 +416,7 @@ export default function LoginPage() {
                           className="flex justify-start"
                         />
                         {isTurnstileVerifying && (
-                          <div className="text-sm text-gray-500 text-center">
+                          <div className="text-xs sm:text-sm text-gray-500 text-center">
                             セキュリティ確認中...
                           </div>
                         )}
@@ -458,12 +458,12 @@ export default function LoginPage() {
 
                     {/* ログイン試行回数表示 */}
                     {!isSignUp && loginAttempts > 0 && (
-                      <div className="text-sm text-orange-600 text-center">
+                      <div className="text-xs sm:text-sm text-orange-600 text-center">
                         ログイン試行回数: {loginAttempts}/{MAX_LOGIN_ATTEMPTS}
                       </div>
                     )}
 
-                    <Button type="submit" className="w-full py-3" disabled={loading || (isSignUp && !agree) || (showTurnstile && !turnstileToken)}>
+                    <Button type="submit" className="w-full text-sm py-2" disabled={loading || (isSignUp && !agree) || (showTurnstile && !turnstileToken)}>
                       {loading ? (
                         <div className="flex items-center">
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -486,8 +486,8 @@ export default function LoginPage() {
                       </div>
                     </div>
 
-                    {/* SNSログインボタン（横並び） */}
-                    <div className="flex justify-center space-x-6">
+                    {/* SNSログインボタン（レスポンシブ対応） */}
+                    <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-4">
                       <GoogleSignInButton
                         mode={isSignUp ? "signup" : "signin"}
                         onClick={() => {
@@ -641,14 +641,14 @@ export default function LoginPage() {
                   </form>
 
                   {/* モード切り替え */}
-                  <div className="mt-6 text-center">
-                    <p className="text-sm text-gray-600">
+                  <div className="mt-3 text-center">
+                    <p className="text-xs text-gray-600">
                       {isSignUp ? "すでにアカウントをお持ちですか？" : "アカウントをお持ちでない方は"}
                     </p>
                     <Button
                       variant="link"
                       onClick={toggleMode}
-                      className="text-blue-600 hover:text-blue-800 p-0 h-auto font-medium text-sm"
+                      className="text-blue-600 hover:text-blue-800 p-0 h-auto font-medium text-xs"
                     >
                       {isSignUp ? "ログインはこちら" : "アカウント作成はこちら"}
                     </Button>

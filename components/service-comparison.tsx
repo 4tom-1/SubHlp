@@ -19,6 +19,7 @@ interface Service {
   yearlyPrice?: number
   features: string[]
   rating: number
+<<<<<<< HEAD
   reviewCount: number
   description: string
   website: string
@@ -164,10 +165,59 @@ const getServiceDescription = (name: string, category: string): string => {
 }
 
 const sampleServices: Service[] = generateServiceData()
+=======
+  description: string
+}
+
+const sampleServices: Service[] = [
+  {
+    name: "Netflix",
+    category: "動画配信",
+    monthlyPrice: 1490,
+    features: ["オリジナル作品", "4K対応", "ダウンロード可能"],
+    rating: 4.5,
+    description: "世界最大級の動画配信サービス",
+  },
+  {
+    name: "Amazon Prime Video",
+    category: "動画配信",
+    monthlyPrice: 500,
+    yearlyPrice: 4900,
+    features: ["Prime特典", "映画・ドラマ", "オリジナル作品"],
+    rating: 4.3,
+    description: "Amazonプライム会員特典付き",
+  },
+  {
+    name: "Disney+",
+    category: "動画配信",
+    monthlyPrice: 990,
+    features: ["ディズニー作品", "マーベル", "スター・ウォーズ"],
+    rating: 4.4,
+    description: "ディズニー公式配信サービス",
+  },
+  {
+    name: "Spotify",
+    category: "音楽",
+    monthlyPrice: 980,
+    features: ["5000万曲以上", "オフライン再生", "プレイリスト"],
+    rating: 4.6,
+    description: "世界最大の音楽ストリーミング",
+  },
+  {
+    name: "Apple Music",
+    category: "音楽",
+    monthlyPrice: 1080,
+    features: ["7500万曲以上", "ロスレス音質", "Apple製品連携"],
+    rating: 4.4,
+    description: "Apple公式音楽サービス",
+  },
+]
+>>>>>>> eb67fafbb1ee5626f7557e1b5d73f74887dc547a
 
 export function ServiceComparison() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("")
+<<<<<<< HEAD
   const [sortBy, setSortBy] = useState<"name" | "price" | "rating">("name")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000])
@@ -261,6 +311,26 @@ export function ServiceComparison() {
               <Filter className="h-4 w-4 mr-2" />
               フィルター
             </Button>
+=======
+
+  const filteredServices = sampleServices.filter((service) => {
+    const matchesSearch =
+      service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      service.description.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCategory = !selectedCategory || service.category === selectedCategory
+    return matchesSearch && matchesCategory
+  })
+
+  const categories = [...new Set(sampleServices.map((s) => s.category))]
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Search className="h-5 w-5 mr-2" />
+            サービス比較・検索
+>>>>>>> eb67fafbb1ee5626f7557e1b5d73f74887dc547a
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -268,7 +338,11 @@ export function ServiceComparison() {
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <Input
+<<<<<<< HEAD
                   placeholder="サービス名、機能、説明で検索..."
+=======
+                  placeholder="サービス名で検索..."
+>>>>>>> eb67fafbb1ee5626f7557e1b5d73f74887dc547a
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -293,6 +367,7 @@ export function ServiceComparison() {
                 ))}
               </div>
             </div>
+<<<<<<< HEAD
 
             {/* 詳細フィルター */}
             {showFilters && (
@@ -374,10 +449,13 @@ export function ServiceComparison() {
                 </div>
               </div>
             )}
+=======
+>>>>>>> eb67fafbb1ee5626f7557e1b5d73f74887dc547a
           </div>
         </CardContent>
       </Card>
 
+<<<<<<< HEAD
       {/* 比較リスト */}
       {compareList.length > 0 && (
         <Card>
@@ -459,6 +537,18 @@ export function ServiceComparison() {
                       {service.trialDays}日無料
                     </Badge>
                   )}
+=======
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {filteredServices.map((service, index) => (
+          <Card key={index} className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="text-lg">{service.name}</CardTitle>
+                  <Badge variant="secondary" className="mt-1">
+                    {service.category}
+                  </Badge>
+>>>>>>> eb67fafbb1ee5626f7557e1b5d73f74887dc547a
                 </div>
                 <div className="text-right">
                   <div className="text-xl font-bold text-blue-600">¥{service.monthlyPrice.toLocaleString()}</div>
@@ -472,7 +562,11 @@ export function ServiceComparison() {
             <CardContent>
               <p className="text-gray-600 mb-3">{service.description}</p>
 
+<<<<<<< HEAD
               <div className="flex items-center justify-between mb-3">
+=======
+              <div className="flex items-center mb-3">
+>>>>>>> eb67fafbb1ee5626f7557e1b5d73f74887dc547a
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
                     <Star
@@ -482,19 +576,29 @@ export function ServiceComparison() {
                       }`}
                     />
                   ))}
+<<<<<<< HEAD
                   <span className="ml-2 text-sm text-gray-600">{service.rating}</span>
                 </div>
                 <span className="text-xs text-gray-500">({service.reviewCount.toLocaleString()}件)</span>
+=======
+                </div>
+                <span className="ml-2 text-sm text-gray-600">{service.rating}</span>
+>>>>>>> eb67fafbb1ee5626f7557e1b5d73f74887dc547a
               </div>
 
               <div className="space-y-2 mb-4">
                 <h4 className="font-medium text-sm">主な機能:</h4>
                 <div className="flex flex-wrap gap-1">
+<<<<<<< HEAD
                   {service.features.slice(0, 3).map((feature, i) => (
+=======
+                  {service.features.map((feature, i) => (
+>>>>>>> eb67fafbb1ee5626f7557e1b5d73f74887dc547a
                     <Badge key={i} variant="outline" className="text-xs">
                       {feature}
                     </Badge>
                   ))}
+<<<<<<< HEAD
                   {service.features.length > 3 && (
                     <Badge variant="outline" className="text-xs">
                       +{service.features.length - 3}個
@@ -526,12 +630,25 @@ export function ServiceComparison() {
                   )}
                 </Button>
               </div>
+=======
+                </div>
+              </div>
+
+              <Button variant="outline" size="sm" className="w-full">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                詳細を見る
+              </Button>
+>>>>>>> eb67fafbb1ee5626f7557e1b5d73f74887dc547a
             </CardContent>
           </Card>
         ))}
       </div>
 
+<<<<<<< HEAD
       {filteredAndSortedServices.length === 0 && (
+=======
+      {filteredServices.length === 0 && (
+>>>>>>> eb67fafbb1ee5626f7557e1b5d73f74887dc547a
         <Card>
           <CardContent className="text-center py-8">
             <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -539,6 +656,7 @@ export function ServiceComparison() {
           </CardContent>
         </Card>
       )}
+<<<<<<< HEAD
 
       {/* サービス詳細モーダル */}
       {selectedService && (
@@ -624,6 +742,8 @@ export function ServiceComparison() {
           </div>
         </Modal>
       )}
+=======
+>>>>>>> eb67fafbb1ee5626f7557e1b5d73f74887dc547a
     </div>
   )
 }
